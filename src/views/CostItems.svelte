@@ -48,7 +48,7 @@
       <div class="space-y-3">
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: Embalagem" />
+          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: Embalagem" maxlength="60" />
         </label>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Custo padrão (opcional)</span>

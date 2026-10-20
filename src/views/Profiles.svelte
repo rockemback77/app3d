@@ -51,7 +51,7 @@
       <div class="space-y-3">
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul Voolt" />
+          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul Voolt" maxlength="60" />
         </label>
         <div class="grid grid-cols-2 gap-3">
           <label class="block">
@@ -64,13 +64,13 @@
             <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Cor</span>
             <div class="flex items-center gap-2">
               <input type="color" class="h-10 w-12 rounded border border-slate-300 dark:border-slate-600" bind:value={editing.color} />
-              <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="rótulo" />
+              <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="rótulo" maxlength="30" />
             </div>
           </label>
         </div>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marca (opcional)</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" />
+          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" maxlength="40" />
         </label>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Preço por kg *</span>

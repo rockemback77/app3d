@@ -189,6 +189,7 @@
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         placeholder="Ex: suporte de fone"
+        maxlength="60"
         bind:value={saveLabel}
       />
     </label>
@@ -227,6 +228,7 @@
             <input
               class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
               placeholder="Nome do filamento"
+              maxlength="60"
               bind:value={f.name}
             />
           {/if}
@@ -307,6 +309,7 @@
             <input
               class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
               placeholder="Descreva o custo"
+              maxlength="60"
               bind:value={m.label}
             />
           {/if}

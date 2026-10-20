@@ -150,6 +150,7 @@
             <input
               class="w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900"
               placeholder="Nome da peça"
+              maxlength="40"
               bind:value={part.name}
               oninput={persistSettings}
             />
@@ -199,6 +200,7 @@
           <input
             class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
             placeholder="Nome"
+            maxlength="40"
             bind:value={mp.name}
             oninput={persistSettings}
           />

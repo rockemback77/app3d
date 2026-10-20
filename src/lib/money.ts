@@ -29,7 +29,7 @@ export function parseBRLToCentavos(input: string | number): number {
     .replace(',', '.');
   const n = parseFloat(normalized);
   if (!isFinite(n)) return 0;
-  return Math.round(n * 100);
+  return Math.max(0, Math.round(n * 100)); // sem valores negativos
 }
 
 /** Converte string pt-BR num número decimal genérico (gramas, horas, %). */
@@ -39,7 +39,7 @@ export function parseNumberBR(input: string | number): number {
   if (!s) return 0;
   const normalized = s.replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
   const n = parseFloat(normalized);
-  return isFinite(n) ? n : 0;
+  return isFinite(n) ? Math.max(0, n) : 0; // sem valores negativos
 }
 
 /** Número decimal -> string pt-BR com N casas. */
