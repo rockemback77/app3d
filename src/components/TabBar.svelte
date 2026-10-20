@@ -6,7 +6,7 @@
     { id: 'profiles', label: 'Filamentos', icon: '🧵' },
     { id: 'costs', label: 'Custos', icon: '📦' },
     { id: 'sales', label: 'Vendas', icon: '💰' },
-    { id: 'history', label: 'Peças', icon: '🕑' },
+    { id: 'history', label: 'Peças cadastradas', icon: '🕑' },
     { id: 'settings', label: 'Config', icon: '⚙️' },
   ];
 </script>

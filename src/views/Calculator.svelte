@@ -154,7 +154,7 @@
   }
 </script>
 
-<div class="space-y-4 p-4 pb-40">
+<div class="space-y-4 p-4 pb-24">
   <div class="flex items-center justify-between gap-2">
     <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular impressão'}</h1>
     {#if editingId}
@@ -345,11 +345,9 @@
       </p>
     {/if}
   </section>
-</div>
 
-<!-- Resultado fixo no rodapé -->
-<div class="fixed inset-x-0 bottom-16 z-20 border-t border-slate-200 bg-white/95 p-4 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
-  <div class="mx-auto max-w-md">
+  <!-- Resultado -->
+  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
     <div class="flex items-end justify-between">
       <div>
         <p class="text-xs text-slate-500">Custo total</p>
@@ -360,23 +358,20 @@
         <p class="text-3xl font-extrabold text-sky-600 dark:text-sky-400">{formatBRL(breakdown.finalPriceCentavos)}</p>
       </div>
     </div>
-    <details class="mt-2 text-xs text-slate-600 dark:text-slate-300">
-      <summary class="cursor-pointer text-sky-600">Ver detalhamento</summary>
-      <ul class="mt-2 space-y-0.5">
-        <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(breakdown.filamentCentavos)}</span></li>
-        <li class="flex justify-between"><span>Energia</span><span>{formatBRL(breakdown.energyCentavos)}</span></li>
-        <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(breakdown.wearCentavos)}</span></li>
-        <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(breakdown.laborCentavos)}</span></li>
-        <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(breakdown.miscCentavos)}</span></li>
-        <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(breakdown.priceWithMarginCentavos)}</span></li>
-        {#if breakdown.marketplaceName}
-          <li class="flex justify-between"><span>+ {breakdown.marketplaceName} ({breakdown.marketplaceRatePercent}%)</span><span>{formatBRL(breakdown.finalPriceCentavos - breakdown.priceWithMarginCentavos)}</span></li>
-        {/if}
-      </ul>
-      <div class="mt-3">
-        <button class="w-full rounded-lg bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
-      </div>
-      {#if savedMsg}<p class="mt-1 text-emerald-600">{savedMsg}</p>{/if}
-    </details>
-  </div>
+    <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
+      <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(breakdown.filamentCentavos)}</span></li>
+      <li class="flex justify-between"><span>Energia</span><span>{formatBRL(breakdown.energyCentavos)}</span></li>
+      <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(breakdown.wearCentavos)}</span></li>
+      <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(breakdown.laborCentavos)}</span></li>
+      <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(breakdown.miscCentavos)}</span></li>
+      <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(breakdown.priceWithMarginCentavos)}</span></li>
+      {#if breakdown.marketplaceName}
+        <li class="flex justify-between"><span>+ {breakdown.marketplaceName} ({breakdown.marketplaceRatePercent}%)</span><span>{formatBRL(breakdown.finalPriceCentavos - breakdown.priceWithMarginCentavos)}</span></li>
+      {/if}
+    </ul>
+    <div class="mt-4">
+      <button class="w-full rounded-lg bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
+    </div>
+    {#if savedMsg}<p class="mt-1 text-center text-sm text-emerald-600">{savedMsg}</p>{/if}
+  </section>
 </div>
