@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { AppConfig, CostBreakdown, JobInputs } from './engine/types';
+import { computeBreakdown } from './engine/pricing';
 
 export interface FilamentProfile {
   id: string;
@@ -178,6 +179,33 @@ export async function saveHistory(rec: Omit<HistoryRecord, 'id' | 'createdAt'>):
 
 export async function updateHistory(rec: HistoryRecord): Promise<void> {
   await db.history.put(rec);
+}
+
+/** Semeia uma peça de exemplo já calculada na primeira execução (histórico vazio). */
+export async function seedExamplePieceIfEmpty(config: AppConfig): Promise<void> {
+  const count = await db.history.count();
+  if (count > 0) return;
+  const job: JobInputs = {
+    filaments: [{ profileId: '', name: 'PLA Preto', grams: 35, pricePerKgCentavos: 11000 }],
+    printHours: 2.5,
+    laborMode: 'hourly',
+    laborHours: 0.25,
+    laborFixedCentavos: 0,
+    misc: [{ label: 'Embalagem', costCentavos: 200, ref: '__outro__' }],
+    priceMode: 'margin',
+    marginPercent: 60,
+    fixedPriceCentavos: 0,
+    marketplaceId: null,
+  };
+  const breakdown = computeBreakdown(config, job);
+  await db.history.put({
+    id: uid(),
+    createdAt: Date.now(),
+    label: 'Suporte de celular (exemplo)',
+    job,
+    configSnapshot: JSON.parse(JSON.stringify(config)),
+    breakdown,
+  });
 }
 
 export async function deleteHistory(id: string): Promise<void> {
