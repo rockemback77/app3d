@@ -3,20 +3,25 @@
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { formatBRL } from '../lib/money';
   import { editHistory } from '../lib/stores/ui.svelte';
+  import { settings } from '../lib/stores/settings.svelte';
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
   let query = $state('');
+  let tagFiltro = $state<string | null>(null);
 
   let filtered = $derived.by(() => {
     const list = $history ?? [];
     const q = query.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
-      (r) =>
+    return list.filter((r) => {
+      const matchQ =
+        !q ||
         r.label.toLowerCase().includes(q) ||
-        (r.tags ?? []).some((t) => t.toLowerCase().includes(q))
-    );
+        (r.tags ?? []).some((t) => t.toLowerCase().includes(q));
+      const matchTag =
+        !tagFiltro || (r.tags ?? []).some((t) => t.toLowerCase() === tagFiltro!.toLowerCase());
+      return matchQ && matchTag;
+    });
   });
 
   function remover(rec: HistoryRecord) {
@@ -51,9 +56,22 @@
       {/if}
     </div>
 
+    {#if settings.tags.length}
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagFiltro === null ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+          onclick={() => (tagFiltro = null)}>Todas</button>
+        {#each settings.tags as tag (tag)}
+          <button
+            class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagFiltro === tag ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+            onclick={() => (tagFiltro = tagFiltro === tag ? null : tag)}>{tag}</button>
+        {/each}
+      </div>
+    {/if}
+
     {#if filtered.length === 0}
       <p class="glass p-6 text-center text-sm text-slate-500">
-        Nenhuma peça encontrada para "<span class="font-medium">{query}</span>".
+        Nenhuma peça encontrada{query ? ` para "${query}"` : ''}{tagFiltro ? ` com a tag "${tagFiltro}"` : ''}.
       </p>
     {/if}
 
