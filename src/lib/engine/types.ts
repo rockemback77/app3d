@@ -1,0 +1,61 @@
+// Tipos centrais. Todo valor monetário é em CENTAVOS inteiros.
+
+export interface WearPart {
+  id: string;
+  name: string;
+  costCentavos: number; // custo da peça/manutenção
+  intervalMonths: number; // troca a cada N meses
+}
+
+export interface MarketplacePreset {
+  id: string;
+  name: string;
+  ratePercent: number; // taxa % sobre o preço de venda
+}
+
+export interface AppConfig {
+  kwhPriceCentavos: number; // R$/kWh
+  printerWatts: number; // potência da impressora (W)
+  wearParts: WearPart[];
+  hoursPerMonth: number; // horas de impressão por mês (p/ ratear desgaste)
+  laborRateCentavos: number; // R$/hora de mão de obra padrão
+  marketplaces: MarketplacePreset[];
+}
+
+export interface JobFilament {
+  profileId?: string;
+  name: string;
+  grams: number;
+  pricePerKgCentavos: number; // R$/kg
+}
+
+export type LaborMode = 'hourly' | 'fixed';
+
+export interface JobMiscItem {
+  label: string;
+  costCentavos: number;
+}
+
+export interface JobInputs {
+  filaments: JobFilament[]; // até 4
+  printHours: number; // tempo total de impressão em horas (decimal)
+  laborMode: LaborMode;
+  laborHours: number;
+  laborFixedCentavos: number;
+  misc: JobMiscItem[];
+  marginPercent: number;
+  marketplaceId: string | null; // null = não aplicável
+}
+
+export interface CostBreakdown {
+  filamentCentavos: number;
+  energyCentavos: number;
+  wearCentavos: number;
+  laborCentavos: number;
+  miscCentavos: number;
+  totalCostCentavos: number;
+  priceWithMarginCentavos: number;
+  marketplaceRatePercent: number; // 0 se não aplicável
+  marketplaceName: string | null;
+  finalPriceCentavos: number;
+}
