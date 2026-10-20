@@ -25,30 +25,32 @@
 {:else if !auth.user}
   <Login />
 {:else}
-  <div class="mx-auto min-h-screen max-w-md">
+  <div class="min-h-screen md:flex">
     <Menu />
-    <InstallBanner />
+    <div class="min-w-0 flex-1">
+      <InstallBanner />
 
-    <main>
-      {#if ui.tab === 'calc'}
-        <Calculator />
-      {:else if ui.tab === 'profiles'}
-        <Profiles />
-      {:else if ui.tab === 'costs'}
-        <CostItems />
-      {:else if ui.tab === 'sales'}
-        <Sales />
-      {:else if ui.tab === 'history'}
-        <History />
-      {:else if ui.tab === 'stock'}
-        <Stock />
-      {:else if ui.tab === 'inventory'}
-        <Inventory />
-      {:else if ui.tab === 'settings'}
-        <Settings />
-      {/if}
-    </main>
+      <main class="mx-auto max-w-md md:max-w-2xl">
+        {#if ui.tab === 'calc'}
+          <Calculator />
+        {:else if ui.tab === 'profiles'}
+          <Profiles />
+        {:else if ui.tab === 'costs'}
+          <CostItems />
+        {:else if ui.tab === 'sales'}
+          <Sales />
+        {:else if ui.tab === 'history'}
+          <History />
+        {:else if ui.tab === 'stock'}
+          <Stock />
+        {:else if ui.tab === 'inventory'}
+          <Inventory />
+        {:else if ui.tab === 'settings'}
+          <Settings />
+        {/if}
+      </main>
 
-    <UpdateToast />
+      <UpdateToast />
+    </div>
   </div>
 {/if}
