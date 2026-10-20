@@ -32,7 +32,10 @@ function load(): AppConfig {
     const base = defaultConfig();
     // migra peças de desgaste do modelo antigo (meses + horas/mês) para vida útil em horas
     const legacyHpm = parsed.hoursPerMonth || 120;
-    const wearParts = (parsed.wearParts ?? base.wearParts).map((p) => ({
+    const srcParts = (parsed.wearParts ?? base.wearParts) as (WearPart & {
+      intervalMonths?: number;
+    })[];
+    const wearParts = srcParts.map((p) => ({
       id: p.id,
       name: p.name,
       costCentavos: p.costCentavos,
