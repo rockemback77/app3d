@@ -19,11 +19,12 @@ let lastLocalPush = 0; // timestamp do último push local (ignora o eco no realt
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 async function exportSnapshot() {
-  const [filaments, history, costItems, transactions] = await Promise.all([
+  const [filaments, history, costItems, transactions, stock] = await Promise.all([
     db.filaments.toArray(),
     db.history.toArray(),
     db.costItems.toArray(),
     db.transactions.toArray(),
+    db.stock.toArray(),
   ]);
   return {
     v: 1,
@@ -32,6 +33,7 @@ async function exportSnapshot() {
     history,
     costItems,
     transactions,
+    stock,
   };
 }
 
@@ -39,17 +41,19 @@ async function applySnapshot(data: any): Promise<void> {
   applying = true;
   try {
     if (data.config) replaceSettings(data.config);
-    await db.transaction('rw', db.filaments, db.history, db.costItems, db.transactions, async () => {
+    await db.transaction('rw', db.filaments, db.history, db.costItems, db.transactions, db.stock, async () => {
       await Promise.all([
         db.filaments.clear(),
         db.history.clear(),
         db.costItems.clear(),
         db.transactions.clear(),
+        db.stock.clear(),
       ]);
       if (data.filaments?.length) await db.filaments.bulkPut(data.filaments);
       if (data.history?.length) await db.history.bulkPut(data.history);
       if (data.costItems?.length) await db.costItems.bulkPut(data.costItems);
       if (data.transactions?.length) await db.transactions.bulkPut(data.transactions);
+      if (data.stock?.length) await db.stock.bulkPut(data.stock);
     });
   } finally {
     setTimeout(() => {

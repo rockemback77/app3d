@@ -7,6 +7,7 @@
   import CostItems from './views/CostItems.svelte';
   import Sales from './views/Sales.svelte';
   import History from './views/History.svelte';
+  import Stock from './views/Stock.svelte';
   import Settings from './views/Settings.svelte';
   import Login from './views/Login.svelte';
   import ResetPassword from './views/ResetPassword.svelte';
@@ -37,6 +38,8 @@
         <Sales />
       {:else if ui.tab === 'history'}
         <History />
+      {:else if ui.tab === 'stock'}
+        <Stock />
       {:else if ui.tab === 'settings'}
         <Settings />
       {/if}

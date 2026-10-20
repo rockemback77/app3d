@@ -7,12 +7,13 @@
     { id: 'costs', label: 'Custos', icon: '🧾' },
     { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
     { id: 'history', label: 'Peças cadastradas', icon: '🧩' },
+    { id: 'stock', label: 'Estoque', icon: '📦' },
     { id: 'settings', label: 'Configurações', icon: '⚙️' },
   ];
 </script>
 
 <nav
-  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-white/40 bg-white/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60"
+  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-white/40 bg-white/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60"
 >
   {#each tabs as t (t.id)}
     <button

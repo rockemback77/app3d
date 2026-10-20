@@ -30,6 +30,13 @@ export interface HistoryRecord {
   breakdown: CostBreakdown;
 }
 
+export interface StockItem {
+  id: string; // = pieceId (uma linha por peça)
+  pieceId: string;
+  quantity: number;
+  createdAt: number;
+}
+
 export type TxType = 'receita' | 'despesa';
 
 export interface Transaction {
@@ -48,6 +55,7 @@ const db = new Dexie('calculadora-custo-3d') as Dexie & {
   history: EntityTable<HistoryRecord, 'id'>;
   costItems: EntityTable<CostItem, 'id'>;
   transactions: EntityTable<Transaction, 'id'>;
+  stock: EntityTable<StockItem, 'id'>;
 };
 
 // v1: perfis de filamento. v2: histórico. v3: outros custos.
@@ -68,6 +76,13 @@ db.version(4).stores({
   history: 'id, createdAt',
   costItems: 'id, createdAt, name',
   transactions: 'id, createdAt, date, type',
+});
+db.version(5).stores({
+  filaments: 'id, createdAt, name',
+  history: 'id, createdAt',
+  costItems: 'id, createdAt, name',
+  transactions: 'id, createdAt, date, type',
+  stock: 'id, pieceId',
 });
 
 export { db };
@@ -271,4 +286,23 @@ export async function saveTransaction(
 
 export async function deleteTransaction(id: string): Promise<void> {
   await db.transactions.delete(id);
+}
+
+// ---- Estoque (quantas peças cadastradas há em estoque) ----
+export async function listStock(): Promise<StockItem[]> {
+  return db.stock.toArray();
+}
+
+export async function setStock(pieceId: string, quantity: number): Promise<void> {
+  if (!(quantity > 0)) {
+    await db.stock.delete(pieceId);
+    return;
+  }
+  const ex = await db.stock.get(pieceId);
+  await db.stock.put({
+    id: pieceId,
+    pieceId,
+    quantity: Math.round(quantity),
+    createdAt: ex?.createdAt ?? Date.now(),
+  });
 }

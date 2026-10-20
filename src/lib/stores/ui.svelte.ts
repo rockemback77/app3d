@@ -1,6 +1,6 @@
 import type { HistoryRecord } from '../db';
 
-export type Tab = 'calc' | 'profiles' | 'costs' | 'sales' | 'history' | 'settings';
+export type Tab = 'calc' | 'profiles' | 'costs' | 'sales' | 'history' | 'stock' | 'settings';
 
 // Aba ativa (compartilhada para permitir navegação entre telas).
 export const ui = $state<{ tab: Tab }>({ tab: 'calc' });
