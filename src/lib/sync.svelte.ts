@@ -1,5 +1,5 @@
 import { liveQuery } from 'dexie';
-import { db } from './db';
+import { db, ensureDefaultCostItems } from './db';
 import { settings, replaceSettings } from './stores/settings.svelte';
 import { supabase } from './supabase';
 import { auth } from './stores/auth.svelte';
@@ -107,7 +107,9 @@ export async function syncOnLogin(): Promise<void> {
     return;
   }
   if (data?.data) await applySnapshot(data.data);
-  else await push();
+  // garante os custos padrão mesmo após baixar dados antigos da nuvem
+  await ensureDefaultCostItems();
+  await push(); // persiste o estado mesclado (nuvem + custos padrão)
   syncState.status = 'synced';
   syncState.at = Date.now();
   syncState.error = null;

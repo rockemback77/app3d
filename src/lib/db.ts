@@ -149,14 +149,27 @@ export async function deleteCostItem(id: string): Promise<void> {
   await db.costItems.delete(id);
 }
 
-/** Semeia custos comuns na primeira execução (tabela vazia). */
-export async function seedCostItemsIfEmpty(): Promise<void> {
-  const count = await db.costItems.count();
-  if (count > 0) return;
-  const defaults = ['Embalagem', 'Frete', 'Etiqueta', 'Acabamento'];
+const DEFAULT_COST_ITEMS = [
+  'Embalagem',
+  'Frete',
+  'Etiqueta',
+  'Acabamento',
+  'Cola',
+  'Lixa',
+  'Parafusos / ímãs',
+  'Tinta / pintura',
+  'Álcool isopropílico',
+  'Manutenção',
+];
+
+/** Garante que os custos padrão existam (adiciona apenas os que faltam, por nome). */
+export async function ensureDefaultCostItems(): Promise<void> {
+  const existing = new Set((await db.costItems.toArray()).map((c) => c.name.toLowerCase()));
+  const missing = DEFAULT_COST_ITEMS.filter((n) => !existing.has(n.toLowerCase()));
+  if (!missing.length) return;
   const now = Date.now();
   await db.costItems.bulkPut(
-    defaults.map((name, i) => ({ id: uid(), name, costCentavos: 0, createdAt: now + i }))
+    missing.map((name, i) => ({ id: uid(), name, costCentavos: 0, createdAt: now + i }))
   );
 }
 
