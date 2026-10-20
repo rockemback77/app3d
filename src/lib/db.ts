@@ -37,6 +37,14 @@ export interface StockItem {
   createdAt: number;
 }
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: string; // Filamento, Bico, Placa, Correia, Mesa/Base, Peça, Outro
+  quantity: number;
+  createdAt: number;
+}
+
 export type TxType = 'receita' | 'despesa';
 
 export interface Transaction {
@@ -56,6 +64,7 @@ const db = new Dexie('calculadora-custo-3d') as Dexie & {
   costItems: EntityTable<CostItem, 'id'>;
   transactions: EntityTable<Transaction, 'id'>;
   stock: EntityTable<StockItem, 'id'>;
+  inventory: EntityTable<InventoryItem, 'id'>;
 };
 
 // v1: perfis de filamento. v2: histórico. v3: outros custos.
@@ -83,6 +92,14 @@ db.version(5).stores({
   costItems: 'id, createdAt, name',
   transactions: 'id, createdAt, date, type',
   stock: 'id, pieceId',
+});
+db.version(6).stores({
+  filaments: 'id, createdAt, name',
+  history: 'id, createdAt',
+  costItems: 'id, createdAt, name',
+  transactions: 'id, createdAt, date, type',
+  stock: 'id, pieceId',
+  inventory: 'id, createdAt, category',
 });
 
 export { db };
@@ -305,4 +322,34 @@ export async function setStock(pieceId: string, quantity: number): Promise<void>
     quantity: Math.round(quantity),
     createdAt: ex?.createdAt ?? Date.now(),
   });
+}
+
+// ---- Inventário (insumos e peças de reposição) ----
+export async function listInventory(): Promise<InventoryItem[]> {
+  return db.inventory.orderBy('createdAt').reverse().toArray();
+}
+
+export async function saveInventory(
+  it: Omit<InventoryItem, 'id' | 'createdAt'> & { id?: string }
+): Promise<string> {
+  const id = it.id ?? uid();
+  const existing = it.id ? await db.inventory.get(it.id) : undefined;
+  await db.inventory.put({
+    id,
+    name: it.name,
+    category: it.category,
+    quantity: Math.max(0, Math.round(it.quantity)),
+    createdAt: existing?.createdAt ?? Date.now(),
+  });
+  return id;
+}
+
+export async function setInventoryQty(id: string, quantity: number): Promise<void> {
+  const ex = await db.inventory.get(id);
+  if (!ex) return;
+  await db.inventory.update(id, { quantity: Math.max(0, Math.round(quantity)) });
+}
+
+export async function deleteInventory(id: string): Promise<void> {
+  await db.inventory.delete(id);
 }
