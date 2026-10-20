@@ -270,10 +270,6 @@
       <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar peça</button>
     </div>
     <div class="mt-3">
-      <label class="block">
-        <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Horas de impressão por mês</span>
-        <NumberInput bind:value={settings.hoursPerMonth} suffix="h" decimals={0} />
-      </label>
       {#if sugestaoHoras}
         <div class="mt-2 rounded-lg bg-sky-50 p-3 text-xs text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800">
           De acordo com suas vendas cadastradas, sua média de impressão é de

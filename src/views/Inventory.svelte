@@ -6,6 +6,7 @@
     setInventoryQty,
     deleteInventory,
     listCostItems,
+    listFilaments,
     type InventoryItem,
   } from '../lib/db';
 
@@ -13,6 +14,15 @@
 
   const itens = liveQuery(() => listInventory());
   const custos = liveQuery(() => listCostItems());
+  const filamentos = liveQuery(() => listFilaments());
+
+  // sugestões = filamentos + custos cadastrados (sem repetir nome)
+  let sugestoes = $derived.by(() => {
+    const nomes = new Set<string>();
+    for (const f of $filamentos ?? []) nomes.add(f.name);
+    for (const c of $custos ?? []) nomes.add(c.name);
+    return [...nomes];
+  });
 
   let editing = $state<Partial<InventoryItem> | null>(null);
 
@@ -68,9 +78,9 @@
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
           <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: Bico 0.4mm" maxlength="60" list="custos-cadastrados" />
           <datalist id="custos-cadastrados">
-            {#each $custos ?? [] as c (c.id)}<option value={c.name}></option>{/each}
+            {#each sugestoes as nome (nome)}<option value={nome}></option>{/each}
           </datalist>
-          <span class="mt-1 block text-xs text-slate-400">Sugestões vêm dos custos cadastrados. Pode digitar livremente.</span>
+          <span class="mt-1 block text-xs text-slate-400">Sugestões vêm dos filamentos e custos cadastrados. Pode digitar livremente.</span>
         </label>
         <div class="grid grid-cols-2 gap-3">
           <label class="block">
