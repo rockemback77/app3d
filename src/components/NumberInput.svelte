@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { formatNumberBR, parseNumberBR } from '../lib/money';
 
   let {
@@ -15,7 +16,7 @@
     id?: string;
   } = $props();
 
-  let text = $state(value ? formatNumberBR(value, decimals) : '');
+  let text = $state(untrack(() => (value ? formatNumberBR(value, decimals) : '')));
   let focused = $state(false);
 
   function onInput(e: Event) {

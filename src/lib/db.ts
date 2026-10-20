@@ -12,6 +12,13 @@ export interface FilamentProfile {
   createdAt: number;
 }
 
+export interface CostItem {
+  id: string;
+  name: string; // ex: Embalagem, Frete, Etiqueta
+  costCentavos: number;
+  createdAt: number;
+}
+
 export interface HistoryRecord {
   id: string;
   createdAt: number;
@@ -24,15 +31,21 @@ export interface HistoryRecord {
 const db = new Dexie('calculadora-custo-3d') as Dexie & {
   filaments: EntityTable<FilamentProfile, 'id'>;
   history: EntityTable<HistoryRecord, 'id'>;
+  costItems: EntityTable<CostItem, 'id'>;
 };
 
-// v1: perfis de filamento. v2: histórico.
+// v1: perfis de filamento. v2: histórico. v3: outros custos.
 db.version(1).stores({
   filaments: 'id, createdAt, name',
 });
 db.version(2).stores({
   filaments: 'id, createdAt, name',
   history: 'id, createdAt',
+});
+db.version(3).stores({
+  filaments: 'id, createdAt, name',
+  history: 'id, createdAt',
+  costItems: 'id, createdAt, name',
 });
 
 export { db };
@@ -68,6 +81,40 @@ export async function saveFilament(
 
 export async function deleteFilament(id: string): Promise<void> {
   await db.filaments.delete(id);
+}
+
+// ---- Outros custos (embalagem, frete, etc.) ----
+export async function listCostItems(): Promise<CostItem[]> {
+  return db.costItems.orderBy('createdAt').reverse().toArray();
+}
+
+export async function saveCostItem(
+  c: Omit<CostItem, 'id' | 'createdAt'> & { id?: string }
+): Promise<string> {
+  const id = c.id ?? uid();
+  const existing = c.id ? await db.costItems.get(c.id) : undefined;
+  await db.costItems.put({
+    id,
+    name: c.name,
+    costCentavos: c.costCentavos,
+    createdAt: existing?.createdAt ?? Date.now(),
+  });
+  return id;
+}
+
+export async function deleteCostItem(id: string): Promise<void> {
+  await db.costItems.delete(id);
+}
+
+/** Semeia custos comuns na primeira execução (tabela vazia). */
+export async function seedCostItemsIfEmpty(): Promise<void> {
+  const count = await db.costItems.count();
+  if (count > 0) return;
+  const defaults = ['Embalagem', 'Frete', 'Etiqueta', 'Acabamento'];
+  const now = Date.now();
+  await db.costItems.bulkPut(
+    defaults.map((name, i) => ({ id: uid(), name, costCentavos: 0, createdAt: now + i }))
+  );
 }
 
 // ---- Histórico ----

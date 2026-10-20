@@ -34,7 +34,10 @@ export type LaborMode = 'hourly' | 'fixed';
 export interface JobMiscItem {
   label: string;
   costCentavos: number;
+  ref?: string; // id do custo cadastrado, '__outro__' p/ manual, ou vazio
 }
+
+export type PriceMode = 'margin' | 'fixed';
 
 export interface JobInputs {
   filaments: JobFilament[]; // até 4
@@ -43,7 +46,9 @@ export interface JobInputs {
   laborHours: number;
   laborFixedCentavos: number;
   misc: JobMiscItem[];
+  priceMode: PriceMode; // 'margin' = por margem de lucro; 'fixed' = valor de venda informado
   marginPercent: number;
+  fixedPriceCentavos: number; // usado quando priceMode === 'fixed'
   marketplaceId: string | null; // null = não aplicável
 }
 

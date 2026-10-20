@@ -4,13 +4,14 @@
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'calc', label: 'Calcular', icon: '🧮' },
     { id: 'profiles', label: 'Filamentos', icon: '🧵' },
+    { id: 'costs', label: 'Custos', icon: '📦' },
     { id: 'history', label: 'Histórico', icon: '🕑' },
     { id: 'settings', label: 'Config', icon: '⚙️' },
   ];
 </script>
 
 <nav
-  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
+  class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
 >
   {#each tabs as t (t.id)}
     <button

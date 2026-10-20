@@ -25,9 +25,11 @@ export function computeBreakdown(config: AppConfig, job: JobInputs): CostBreakdo
 
   const margin = clampPercent(job.marginPercent);
   const priceWithMarginCentavos =
-    margin >= 100
-      ? totalCostCentavos
-      : Math.round(totalCostCentavos / (1 - margin / 100));
+    job.priceMode === 'fixed'
+      ? Math.max(0, Math.round(job.fixedPriceCentavos || 0))
+      : margin >= 100
+        ? totalCostCentavos
+        : Math.round(totalCostCentavos / (1 - margin / 100));
 
   const mp = job.marketplaceId
     ? config.marketplaces.find((m) => m.id === job.marketplaceId) ?? null

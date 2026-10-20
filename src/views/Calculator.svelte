@@ -3,7 +3,7 @@
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import { settings } from '../lib/stores/settings.svelte';
-  import { listFilaments, saveHistory, updateHistory } from '../lib/db';
+  import { listFilaments, listCostItems, saveHistory, updateHistory } from '../lib/db';
   import { editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
   import { filamentCostCentavos } from '../lib/engine/costs';
@@ -11,6 +11,7 @@
   import { formatBRL } from '../lib/money';
 
   const filaments = liveQuery(() => listFilaments());
+  const costItems = liveQuery(() => listCostItems());
 
   function emptyFilament() {
     return { profileId: '', name: '', grams: 0, pricePerKgCentavos: 0 };
@@ -23,7 +24,9 @@
     laborHours: 0,
     laborFixedCentavos: 0,
     misc: [],
+    priceMode: 'margin',
     marginPercent: 50,
+    fixedPriceCentavos: 0,
     marketplaceId: null,
   });
 
@@ -52,7 +55,9 @@
     job.laborHours = rec.job.laborHours;
     job.laborFixedCentavos = rec.job.laborFixedCentavos;
     job.misc = clone(rec.job.misc);
+    job.priceMode = rec.job.priceMode ?? 'margin';
     job.marginPercent = rec.job.marginPercent;
+    job.fixedPriceCentavos = rec.job.fixedPriceCentavos ?? 0;
     job.marketplaceId = rec.job.marketplaceId;
     hh = Math.floor(rec.job.printHours);
     mm = Math.round((rec.job.printHours - hh) * 60);
@@ -68,7 +73,9 @@
     job.laborHours = 0;
     job.laborFixedCentavos = 0;
     job.misc = [];
+    job.priceMode = 'margin';
     job.marginPercent = 50;
+    job.fixedPriceCentavos = 0;
     job.marketplaceId = null;
     hh = 0;
     mm = 0;
@@ -78,12 +85,10 @@
 
   let breakdown = $derived(computeBreakdown(settings, job));
 
-  function addFilament() {
-    if (job.filaments.length < 4) job.filaments.push(emptyFilament());
-  }
-  function removeFilament(i: number) {
-    job.filaments.splice(i, 1);
-    if (job.filaments.length === 0) job.filaments.push(emptyFilament());
+  function setFilamentCount(n: number) {
+    const target = Math.min(4, Math.max(1, n));
+    while (job.filaments.length < target) job.filaments.push(emptyFilament());
+    while (job.filaments.length > target) job.filaments.pop();
   }
 
   function onPickProfile(i: number, profileId: string) {
@@ -98,10 +103,27 @@
   }
 
   function addMisc() {
-    job.misc.push({ label: '', costCentavos: 0 });
+    job.misc.push({ label: '', costCentavos: 0, ref: '' });
   }
   function removeMisc(i: number) {
     job.misc.splice(i, 1);
+  }
+  function onPickMisc(i: number, ref: string) {
+    const m = job.misc[i];
+    m.ref = ref;
+    if (ref === '__outro__') {
+      m.label = '';
+      m.costCentavos = 0;
+    } else if (ref === '') {
+      m.label = '';
+      m.costCentavos = 0;
+    } else {
+      const c = ($costItems ?? []).find((x) => x.id === ref);
+      if (c) {
+        m.label = c.name;
+        m.costCentavos = c.costCentavos;
+      }
+    }
   }
 
   async function salvarHistorico() {
@@ -147,16 +169,36 @@
     </div>
   {/if}
 
+  <!-- Nome da peça -->
+  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+    <label class="block">
+      <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Nome da peça</span>
+      <input
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        placeholder="Ex: suporte de fone"
+        bind:value={saveLabel}
+      />
+    </label>
+  </section>
+
   <!-- Filamentos -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
-    <div class="mb-2 flex items-center justify-between">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
-      <span class="text-xs text-slate-400">{job.filaments.length}/4</span>
+    <h2 class="mb-2 font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
+    <div class="mb-3">
+      <span class="mb-1 block text-xs text-slate-500">Quantidade de filamentos</span>
+      <div class="flex gap-2">
+        {#each [1, 2, 3, 4] as n (n)}
+          <button
+            class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.filaments.length === n ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+            onclick={() => setFilamentCount(n)}>{n}</button>
+        {/each}
+      </div>
     </div>
     <div class="space-y-3">
       {#each job.filaments as f, i (i)}
         <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-          <div class="mb-2 flex items-center justify-between gap-2">
+          <div class="mb-2 flex items-center gap-2">
+            <span class="shrink-0 text-xs font-medium text-slate-400">#{i + 1}</span>
             <select
               class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
               value={f.profileId}
@@ -167,9 +209,6 @@
                 <option value={p.id}>{p.name}</option>
               {/each}
             </select>
-            {#if job.filaments.length > 1}
-              <button class="shrink-0 text-red-500" onclick={() => removeFilament(i)}>✕</button>
-            {/if}
           </div>
           {#if !f.profileId}
             <input
@@ -193,9 +232,6 @@
           </p>
         </div>
       {/each}
-      {#if job.filaments.length < 4}
-        <button class="text-sm font-medium text-sky-600" onclick={addFilament}>+ Adicionar filamento</button>
-      {/if}
     </div>
   </section>
 
@@ -234,12 +270,36 @@
   <!-- Custos avulsos -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
-    <div class="space-y-2">
+    <div class="space-y-3">
       {#each job.misc as m, i (i)}
-        <div class="flex items-center gap-2">
-          <input class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900" placeholder="Ex: embalagem, frete" bind:value={m.label} />
-          <div class="w-32 shrink-0"><CurrencyInput bind:value={m.costCentavos} /></div>
-          <button class="shrink-0 text-red-500" onclick={() => removeMisc(i)}>✕</button>
+        <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+          <div class="mb-2 flex items-center gap-2">
+            <select
+              class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
+              value={m.ref ?? ''}
+              onchange={(e) => onPickMisc(i, (e.target as HTMLSelectElement).value)}
+            >
+              <option value="">— Selecione —</option>
+              {#each $costItems ?? [] as c (c.id)}
+                <option value={c.id}>{c.name}</option>
+              {/each}
+              <option value="__outro__">Outro</option>
+            </select>
+            <button class="shrink-0 text-red-500" onclick={() => removeMisc(i)}>✕</button>
+          </div>
+          {#if m.ref === '__outro__'}
+            <input
+              class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
+              placeholder="Descreva o custo"
+              bind:value={m.label}
+            />
+          {/if}
+          {#if m.ref}
+            <label class="block">
+              <span class="mb-1 block text-xs text-slate-500">Valor</span>
+              <CurrencyInput bind:value={m.costCentavos} />
+            </label>
+          {/if}
         </div>
       {/each}
       <button class="text-sm font-medium text-sky-600" onclick={addMisc}>+ Adicionar custo</button>
@@ -249,11 +309,26 @@
   <!-- Preço de venda -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Preço de venda</h2>
+    <div class="mb-3 flex gap-2">
+      <button
+        class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.priceMode === 'margin' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+        onclick={() => (job.priceMode = 'margin')}>Por margem</button>
+      <button
+        class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.priceMode === 'fixed' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+        onclick={() => (job.priceMode = 'fixed')}>Valor fixo</button>
+    </div>
     <div class="grid grid-cols-2 gap-3">
-      <label class="block">
-        <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Margem de lucro</span>
-        <NumberInput bind:value={job.marginPercent} suffix="%" decimals={1} />
-      </label>
+      {#if job.priceMode === 'margin'}
+        <label class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Margem de lucro</span>
+          <NumberInput bind:value={job.marginPercent} suffix="%" decimals={1} />
+        </label>
+      {:else}
+        <label class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Valor de venda</span>
+          <CurrencyInput bind:value={job.fixedPriceCentavos} />
+        </label>
+      {/if}
       <label class="block">
         <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marketplace</span>
         <select class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={job.marketplaceId}>
@@ -264,6 +339,11 @@
         </select>
       </label>
     </div>
+    {#if job.priceMode === 'fixed'}
+      <p class="mt-2 text-xs text-slate-500">
+        Lucro estimado: {formatBRL(breakdown.priceWithMarginCentavos - breakdown.totalCostCentavos)}
+      </p>
+    {/if}
   </section>
 </div>
 
@@ -288,14 +368,13 @@
         <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(breakdown.wearCentavos)}</span></li>
         <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(breakdown.laborCentavos)}</span></li>
         <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(breakdown.miscCentavos)}</span></li>
-        <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>Com margem</span><span>{formatBRL(breakdown.priceWithMarginCentavos)}</span></li>
+        <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(breakdown.priceWithMarginCentavos)}</span></li>
         {#if breakdown.marketplaceName}
           <li class="flex justify-between"><span>+ {breakdown.marketplaceName} ({breakdown.marketplaceRatePercent}%)</span><span>{formatBRL(breakdown.finalPriceCentavos - breakdown.priceWithMarginCentavos)}</span></li>
         {/if}
       </ul>
-      <div class="mt-3 flex gap-2">
-        <input class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 dark:border-slate-600 dark:bg-slate-900" placeholder="Nome da peça (opcional)" bind:value={saveLabel} />
-        <button class="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar' : 'Salvar'}</button>
+      <div class="mt-3">
+        <button class="w-full rounded-lg bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
       </div>
       {#if savedMsg}<p class="mt-1 text-emerald-600">{savedMsg}</p>{/if}
     </details>
