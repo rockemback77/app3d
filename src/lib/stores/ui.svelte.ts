@@ -2,8 +2,8 @@ import type { HistoryRecord } from '../db';
 
 export type Tab = 'calc' | 'profiles' | 'costs' | 'sales' | 'history' | 'stock' | 'settings';
 
-// Aba ativa (compartilhada para permitir navegação entre telas).
-export const ui = $state<{ tab: Tab }>({ tab: 'calc' });
+// Aba ativa + estado do menu lateral (compartilhado para navegação entre telas).
+export const ui = $state<{ tab: Tab; menuOpen: boolean }>({ tab: 'calc', menuOpen: false });
 
 // Registro de histórico que a Calculadora deve carregar para edição.
 export const editState = $state<{ record: HistoryRecord | null }>({ record: null });

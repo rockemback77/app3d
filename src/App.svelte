@@ -1,5 +1,5 @@
 <script lang="ts">
-  import TabBar from './components/TabBar.svelte';
+  import Menu from './components/Menu.svelte';
   import InstallBanner from './components/InstallBanner.svelte';
   import UpdateToast from './components/UpdateToast.svelte';
   import Calculator from './views/Calculator.svelte';
@@ -25,6 +25,7 @@
   <Login />
 {:else}
   <div class="mx-auto min-h-screen max-w-md">
+    <Menu />
     <InstallBanner />
 
     <main>
@@ -46,6 +47,5 @@
     </main>
 
     <UpdateToast />
-    <TabBar />
   </div>
 {/if}
