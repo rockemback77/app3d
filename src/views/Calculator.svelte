@@ -101,8 +101,9 @@
   // lucro = o que sobra pro vendedor (preço após margem, já líquido da taxa de marketplace) menos o custo
   let lucro = $derived(breakdown.priceWithMarginCentavos - breakdown.totalCostCentavos);
 
+  const MAX_FILAMENTS = 12;
   function setFilamentCount(n: number) {
-    const target = Math.min(4, Math.max(1, n));
+    const target = Math.min(MAX_FILAMENTS, Math.max(1, n));
     while (job.filaments.length < target) job.filaments.push(emptyFilament());
     while (job.filaments.length > target) job.filaments.pop();
   }
@@ -238,7 +239,23 @@
             class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.filaments.length === n ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
             onclick={() => setFilamentCount(n)}>{n}</button>
         {/each}
+        <button
+          class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.filaments.length >= 5 ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+          onclick={() => setFilamentCount(Math.max(5, job.filaments.length))}>5+</button>
       </div>
+      {#if job.filaments.length >= 5}
+        <div class="mt-2 flex items-center justify-center gap-4">
+          <button
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
+            disabled={job.filaments.length <= 5}
+            onclick={() => setFilamentCount(job.filaments.length - 1)}>−</button>
+          <span class="w-8 text-center text-lg font-bold">{job.filaments.length}</span>
+          <button
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
+            disabled={job.filaments.length >= MAX_FILAMENTS}
+            onclick={() => setFilamentCount(job.filaments.length + 1)}>+</button>
+        </div>
+      {/if}
     </div>
     <div class="space-y-3">
       {#each job.filaments as f, i (i)}

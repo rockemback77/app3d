@@ -8,6 +8,22 @@
 
   const filaments = liveQuery(() => listFilaments());
 
+  // agrupa por marca (a lista já vem ordenada por marca)
+  let grupos = $derived.by(() => {
+    const list = $filaments ?? [];
+    const out: { brand: string; items: FilamentProfile[] }[] = [];
+    for (const f of list) {
+      const b = f.brand?.trim() || 'Sem marca';
+      let g = out[out.length - 1];
+      if (!g || g.brand !== b) {
+        g = { brand: b, items: [] };
+        out.push(g);
+      }
+      g.items.push(f);
+    }
+    return out;
+  });
+
   let editing = $state<Partial<FilamentProfile> | null>(null);
 
   function novo() {
@@ -87,16 +103,27 @@
   {/if}
 
   {#if $filaments && $filaments.length > 0}
-    <div class="space-y-2">
-      {#each $filaments as f (f.id)}
-        <div class="flex items-center gap-3 glass p-3">
-          <span class="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/10" style="background:{f.color}"></span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate font-medium">{f.name}</p>
-            <p class="text-xs text-slate-500">{f.type}{f.brand ? ' · ' + f.brand : ''} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
+    <div class="space-y-4">
+      {#each grupos as g (g.brand)}
+        <div>
+          <h3 class="mb-1.5 flex items-center gap-2 px-1">
+            <span class="rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">{g.brand}</span>
+            <span class="text-[10px] text-slate-400">{g.items.length} {g.items.length === 1 ? 'filamento' : 'filamentos'}</span>
+            <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+          </h3>
+          <div class="space-y-2">
+            {#each g.items as f (f.id)}
+              <div class="flex items-center gap-3 glass p-3">
+                <span class="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/10" style="background:{f.color}"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium">{f.name}</p>
+                  <p class="text-xs text-slate-500">{f.type} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
+                </div>
+                <button class="text-sm text-sky-600" onclick={() => editar(f)}>Editar</button>
+                <button class="text-sm text-red-500" onclick={() => remover(f)}>Excluir</button>
+              </div>
+            {/each}
           </div>
-          <button class="text-sm text-sky-600" onclick={() => editar(f)}>Editar</button>
-          <button class="text-sm text-red-500" onclick={() => remover(f)}>Excluir</button>
         </div>
       {/each}
     </div>

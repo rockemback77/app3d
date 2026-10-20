@@ -159,28 +159,39 @@ export async function deleteCostItem(id: string): Promise<void> {
   await db.costItems.delete(id);
 }
 
-const DEFAULT_COST_ITEMS = [
-  'Embalagem',
-  'Frete',
-  'Etiqueta',
-  'Acabamento',
-  'Cola',
-  'Lixa',
-  'Parafusos / ímãs',
-  'Tinta / pintura',
-  'Álcool isopropílico',
-  'Manutenção',
+// custos padrão com valor sugerido (centavos)
+const DEFAULT_COST_ITEMS: { name: string; cost: number }[] = [
+  { name: 'Embalagem', cost: 150 },
+  { name: 'Frete', cost: 1500 },
+  { name: 'Etiqueta', cost: 30 },
+  { name: 'Acabamento', cost: 200 },
+  { name: 'Cola', cost: 50 },
+  { name: 'Lixa', cost: 100 },
+  { name: 'Parafusos / ímãs', cost: 150 },
+  { name: 'Tinta / pintura', cost: 300 },
+  { name: 'Álcool isopropílico', cost: 50 },
+  { name: 'Manutenção', cost: 200 },
 ];
 
-/** Garante que os custos padrão existam (adiciona apenas os que faltam, por nome). */
+/**
+ * Garante os custos padrão: adiciona os que faltam (com valor sugerido) e
+ * preenche o valor dos que existem zerados — sem sobrescrever valores já definidos.
+ */
 export async function ensureDefaultCostItems(): Promise<void> {
-  const existing = new Set((await db.costItems.toArray()).map((c) => c.name.toLowerCase()));
-  const missing = DEFAULT_COST_ITEMS.filter((n) => !existing.has(n.toLowerCase()));
-  if (!missing.length) return;
+  const all = await db.costItems.toArray();
+  const byName = new Map(all.map((c) => [c.name.toLowerCase(), c]));
+  const toAdd: CostItem[] = [];
   const now = Date.now();
-  await db.costItems.bulkPut(
-    missing.map((name, i) => ({ id: uid(), name, costCentavos: 0, createdAt: now + i }))
-  );
+  let i = 0;
+  for (const d of DEFAULT_COST_ITEMS) {
+    const ex = byName.get(d.name.toLowerCase());
+    if (!ex) {
+      toAdd.push({ id: uid(), name: d.name, costCentavos: d.cost, createdAt: now + i++ });
+    } else if ((ex.costCentavos || 0) === 0 && d.cost > 0) {
+      await db.costItems.update(ex.id, { costCentavos: d.cost });
+    }
+  }
+  if (toAdd.length) await db.costItems.bulkPut(toAdd);
 }
 
 // ---- Histórico ----
