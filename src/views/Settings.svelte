@@ -88,6 +88,17 @@
     return { horas: total / meses.size, meses: meses.size };
   });
 
+  let showWatts = $state(false);
+  const printersInfo = [
+    { nome: 'Bambu Lab A1 Mini', w: '80 W', kwh: '0,80 kWh' },
+    { nome: 'Bambu Lab A1', w: '95 W', kwh: '0,95 kWh' },
+    { nome: 'Creality Ender-3 V3 KE', w: '120 W*', kwh: '1,20 kWh' },
+    { nome: 'Creality Ender-3 V3 SE', w: '125 W*', kwh: '1,25 kWh' },
+    { nome: 'Creality K1C', w: '130 W*', kwh: '1,30 kWh' },
+    { nome: 'Bambu Lab P1S', w: '105 W', kwh: '1,05 kWh' },
+    { nome: 'Bambu Lab X1 Carbon', w: '105 W', kwh: '1,05 kWh' },
+  ];
+
   function aplicarSugestao() {
     if (!sugestaoHoras) return;
     settings.hoursPerMonth = Math.round(sugestaoHoras.horas);
@@ -190,10 +201,40 @@
         <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Preço do kWh</span>
         <CurrencyInput bind:value={settings.kwhPriceCentavos} />
       </label>
-      <label class="block">
-        <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Potência da impressora</span>
+      <div class="block">
+        <div class="mb-1 flex items-center gap-1.5">
+          <span class="text-sm text-slate-600 dark:text-slate-300">Potência da impressora</span>
+          <button
+            type="button"
+            class="flex h-5 w-5 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600 hover:bg-sky-200 dark:bg-sky-500/20 dark:text-sky-300"
+            aria-label="Consumo médio por impressora"
+            onclick={() => (showWatts = !showWatts)}
+          >i</button>
+        </div>
         <NumberInput bind:value={settings.printerWatts} suffix="W" decimals={0} />
-      </label>
+        {#if showWatts}
+          <div class="mt-2 rounded-lg bg-slate-50/70 p-3 text-xs dark:bg-slate-900/40">
+            <p class="mb-2 font-semibold text-slate-600 dark:text-slate-300">Consumo médio aproximado</p>
+            <table class="w-full">
+              <thead>
+                <tr class="text-left text-slate-400">
+                  <th class="pb-1 font-medium">Impressora</th>
+                  <th class="pb-1 text-right font-medium">Potência</th>
+                </tr>
+              </thead>
+              <tbody class="text-slate-500 dark:text-slate-400">
+                {#each printersInfo as p (p.nome)}
+                  <tr class="border-t border-slate-200/70 dark:border-slate-700/70">
+                    <td class="py-1">{p.nome}</td>
+                    <td class="py-1 text-right whitespace-nowrap">{p.w}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+            <p class="mt-2 text-[10px] text-slate-400">* valor aproximado. Consumo real varia com temperatura, material e velocidade.</p>
+          </div>
+        {/if}
+      </div>
     </div>
   </section>
 
