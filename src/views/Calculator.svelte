@@ -228,6 +228,7 @@
     </label>
     <div class="mt-3">
       <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Tags</span>
+      <p class="mb-2 text-xs text-slate-400">As tags são cadastradas na aba Configurações.</p>
       {#if settings.tags.length}
         <div class="mb-2 flex flex-wrap gap-2">
           {#each settings.tags as tag (tag)}
