@@ -267,7 +267,7 @@
           </div>
         </div>
       {/each}
-      <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar peça</button>
+      <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar</button>
     </div>
     <div class="mt-3">
       {#if sugestaoHoras}
