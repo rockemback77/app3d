@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { signIn, signUp } from '../lib/stores/auth.svelte';
+  import { signIn, signUp, resetPassword } from '../lib/stores/auth.svelte';
 
   let email = $state('');
   let senha = $state('');
@@ -30,6 +30,17 @@
 
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Enter' && email && senha && !busy) entrar();
+  }
+
+  async function recuperar() {
+    if (!email) {
+      authMsg = 'Digite seu email acima para receber o link de recuperação.';
+      return;
+    }
+    busy = true;
+    const err = await resetPassword(email);
+    busy = false;
+    authMsg = err ? traduzErro(err) : 'Enviamos um link de recuperação para seu email.';
   }
 </script>
 
@@ -76,6 +87,11 @@
       >
         {modo === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
       </button>
+      {#if modo === 'login'}
+        <button class="w-full py-1 text-center text-xs text-slate-500 hover:text-sky-600" onclick={recuperar}>
+          Esqueci minha senha
+        </button>
+      {/if}
       {#if authMsg}<p class="pt-1 text-center text-sm text-amber-600">{authMsg}</p>{/if}
     </div>
   </div>

@@ -14,6 +14,13 @@
   import { exportBackup, importBackup } from '../lib/backup';
   import { auth, signIn, signUp, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
+  import { theme, setTheme, type Theme } from '../lib/stores/theme.svelte';
+
+  const temas: { id: Theme; label: string; icon: string }[] = [
+    { id: 'light', label: 'Claro', icon: '☀️' },
+    { id: 'dark', label: 'Escuro', icon: '🌙' },
+    { id: 'system', label: 'Sistema', icon: '🖥️' },
+  ];
 
   let importMsg = $state('');
   let fileInput: HTMLInputElement;
@@ -47,6 +54,13 @@
     if (/already registered/i.test(msg)) return 'Email já cadastrado. Faça login.';
     if (/password should be at least/i.test(msg)) return 'Senha muito curta (mín. 6 caracteres).';
     return msg;
+  }
+
+  function removerPeca(part: { id: string; name: string }) {
+    if (confirm(`Excluir a peça de desgaste "${part.name || 'sem nome'}"?`)) removeWearPart(part.id);
+  }
+  function removerMarket(mp: { id: string; name: string }) {
+    if (confirm(`Excluir o marketplace "${mp.name || 'sem nome'}"?`)) removeMarketplace(mp.id);
   }
 
   let wearHour = $derived(wearPerHourCentavos(settings));
@@ -124,6 +138,21 @@
     {#if authMsg}<p class="mt-2 text-sm text-amber-600">{authMsg}</p>{/if}
   </section>
 
+  <!-- Aparência / tema -->
+  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+    <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Aparência</h2>
+    <div class="flex gap-2">
+      {#each temas as t (t.id)}
+        <button
+          class="flex-1 rounded-lg py-2 text-sm font-medium {theme.value === t.id ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+          onclick={() => setTheme(t.id)}
+        >
+          <span class="mr-1">{t.icon}</span>{t.label}
+        </button>
+      {/each}
+    </div>
+  </section>
+
   <!-- Energia / Impressora -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Energia & Impressora</h2>
@@ -154,7 +183,7 @@
               bind:value={part.name}
               oninput={persistSettings}
             />
-            <button class="shrink-0 text-red-500" onclick={() => removeWearPart(part.id)}>Remover</button>
+            <button class="shrink-0 text-red-500" onclick={() => removerPeca(part)}>Remover</button>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <label class="block">
@@ -207,7 +236,7 @@
           <div class="w-24 shrink-0">
             <NumberInput bind:value={mp.ratePercent} suffix="%" decimals={1} />
           </div>
-          <button class="shrink-0 text-red-500" onclick={() => removeMarketplace(mp.id)}>✕</button>
+          <button class="shrink-0 text-red-500" onclick={() => removerMarket(mp)}>✕</button>
         </div>
       {/each}
       <button class="text-sm font-medium text-sky-600" onclick={addMarketplace}>+ Adicionar marketplace</button>

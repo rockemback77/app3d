@@ -83,6 +83,8 @@
 
   async function adicionar() {
     if (!label.trim() || !(quantity > 0)) return;
+    const tipoLabel = tipo === 'receita' ? 'receita' : 'despesa';
+    if (!confirm(`Cadastrar ${tipoLabel} de "${label.trim()}" (${formatBRL(total)})?`)) return;
     await saveTransaction({
       type: tipo,
       date: data,
@@ -94,8 +96,8 @@
     resetForm();
   }
 
-  async function remover(id: string) {
-    await deleteTransaction(id);
+  async function remover(t: Transaction) {
+    if (confirm(`Excluir o lançamento "${t.label}"?`)) await deleteTransaction(t.id);
   }
 
   // ---- agrupamento por mês ----
@@ -252,7 +254,7 @@
               <span class="shrink-0 font-medium {t.type === 'receita' ? 'text-emerald-600' : 'text-red-500'}">
                 {t.type === 'receita' ? '+' : '−'} {formatBRL(Math.round(t.quantity * t.unitCentavos))}
               </span>
-              <button class="shrink-0 text-xs text-slate-400 hover:text-red-500" onclick={() => remover(t.id)}>✕</button>
+              <button class="shrink-0 text-xs text-slate-400 hover:text-red-500" onclick={() => remover(t)}>✕</button>
             </div>
           {/each}
         </div>

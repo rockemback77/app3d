@@ -1,9 +1,10 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 
-export const auth = $state<{ user: User | null; loading: boolean }>({
+export const auth = $state<{ user: User | null; loading: boolean; recovery: boolean }>({
   user: null,
   loading: true,
+  recovery: false,
 });
 
 let started = false;
@@ -23,6 +24,7 @@ export function startAuth(onLogin: () => void, onLogout: () => void): void {
     const prev = auth.user?.id ?? null;
     auth.user = session?.user ?? null;
     const now = auth.user?.id ?? null;
+    if (event === 'PASSWORD_RECOVERY') auth.recovery = true;
     if (now && now !== prev) onLogin();
     if (!now && prev) onLogout();
   });
@@ -40,4 +42,17 @@ export async function signIn(email: string, password: string): Promise<string | 
 
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
+}
+
+export async function resetPassword(email: string): Promise<string | null> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  });
+  return error ? error.message : null;
+}
+
+export async function updatePassword(newPassword: string): Promise<string | null> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (!error) auth.recovery = false;
+  return error ? error.message : null;
 }

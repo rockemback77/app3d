@@ -45,6 +45,7 @@
   });
 
   let saveLabel = $state('');
+  let saveTags = $state('');
   let savedMsg = $state('');
 
   // edição de um cálculo salvo
@@ -71,6 +72,7 @@
     laborHh = Math.floor(rec.job.laborHours);
     laborMm = Math.round((rec.job.laborHours - laborHh) * 60);
     saveLabel = rec.label;
+    saveTags = (rec.tags ?? []).join(', ');
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
     editState.record = null; // consumido
@@ -91,6 +93,7 @@
     laborHh = 0;
     laborMm = 0;
     saveLabel = '';
+    saveTags = '';
     editingId = null;
   }
 
@@ -139,13 +142,29 @@
     }
   }
 
+  function parseTags(s: string): string[] {
+    return s
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0)
+      .slice(0, 10);
+  }
+
   async function salvarHistorico() {
-    const label = saveLabel.trim() || new Date().toLocaleString('pt-BR');
+    const label = saveLabel.trim();
+    if (!label) {
+      savedMsg = 'Dê um nome à peça antes de salvar.';
+      setTimeout(() => (savedMsg = ''), 3500);
+      return;
+    }
+    const tags = parseTags(saveTags);
     if (editingId) {
+      if (!confirm('Atualizar esta peça salva com os valores atuais?')) return;
       await updateHistory({
         id: editingId,
         createdAt: editingCreatedAt,
         label,
+        tags,
         job: clone(job),
         configSnapshot: clone(settings),
         breakdown: clone(breakdown),
@@ -153,15 +172,19 @@
       savedMsg = 'Cálculo atualizado ✓';
       editingId = null;
       saveLabel = '';
+      saveTags = '';
     } else {
+      if (!confirm(`Cadastrar a peça "${label}" no histórico?`)) return;
       await saveHistory({
         label,
+        tags,
         job: clone(job),
         configSnapshot: clone(settings),
         breakdown: clone(breakdown),
       });
       savedMsg = 'Cálculo salvo no histórico ✓';
       saveLabel = '';
+      saveTags = '';
     }
     setTimeout(() => (savedMsg = ''), 3500);
   }
@@ -191,6 +214,15 @@
         placeholder="Ex: suporte de fone"
         maxlength="60"
         bind:value={saveLabel}
+      />
+    </label>
+    <label class="mt-3 block">
+      <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Tags</span>
+      <input
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        placeholder="Ex: decoração, cliente X (separe por vírgula)"
+        maxlength="120"
+        bind:value={saveTags}
       />
     </label>
   </section>
@@ -389,7 +421,7 @@
       {/if}
     </ul>
     <div class="mt-4">
-      <button class="w-full rounded-lg bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
+      <button class="w-full rounded-lg px-3 py-2 font-semibold text-white {editingId ? 'bg-amber-500 hover:bg-amber-400' : 'bg-emerald-600 hover:bg-emerald-500'}" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
     </div>
     {#if savedMsg}<p class="mt-1 text-center text-sm text-emerald-600">{savedMsg}</p>{/if}
   </section>

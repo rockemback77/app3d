@@ -9,14 +9,17 @@
   import History from './views/History.svelte';
   import Settings from './views/Settings.svelte';
   import Login from './views/Login.svelte';
+  import ResetPassword from './views/ResetPassword.svelte';
   import { ui } from './lib/stores/ui.svelte';
   import { auth } from './lib/stores/auth.svelte';
 </script>
 
 {#if auth.loading}
   <div class="flex min-h-screen items-center justify-center text-slate-400">
-    <span class="text-3xl">🧮</span>
+    <span class="text-3xl">🖨️</span>
   </div>
+{:else if auth.recovery}
+  <ResetPassword />
 {:else if !auth.user}
   <Login />
 {:else}

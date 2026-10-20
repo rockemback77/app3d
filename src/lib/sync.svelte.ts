@@ -14,6 +14,8 @@ export const syncState = $state<{ status: Status; error: string | null; at: numb
 
 let applying = false; // evita que a aplicação de um pull dispare um push
 let autoStarted = false;
+let realtimeStarted = false;
+let lastLocalPush = 0; // timestamp do último push local (ignora o eco no realtime)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 async function exportSnapshot() {
@@ -68,6 +70,7 @@ export async function push(): Promise<void> {
     syncState.error = error.message;
     return;
   }
+  lastLocalPush = Date.now();
   syncState.status = 'synced';
   syncState.at = Date.now();
   syncState.error = null;
@@ -114,6 +117,27 @@ export async function syncOnLogin(): Promise<void> {
   syncState.at = Date.now();
   syncState.error = null;
   startAutoPush();
+  startRealtime();
+}
+
+/** Sync em tempo real: aplica mudanças feitas em outros aparelhos. */
+function startRealtime(): void {
+  if (realtimeStarted || !auth.user) return;
+  realtimeStarted = true;
+  const userId = auth.user.id;
+  supabase
+    .channel('user_data_' + userId)
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'user_data', filter: `user_id=eq.${userId}` },
+      (payload: { new: { data?: unknown } }) => {
+        // ignora o eco do nosso próprio push recente
+        if (applying || Date.now() - lastLocalPush < 4000) return;
+        const next = payload.new?.data;
+        if (next) void applySnapshot(next);
+      }
+    )
+    .subscribe();
 }
 
 function schedulePush(): void {

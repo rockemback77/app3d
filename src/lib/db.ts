@@ -24,6 +24,7 @@ export interface HistoryRecord {
   id: string;
   createdAt: number;
   label: string;
+  tags?: string[];
   job: JobInputs;
   configSnapshot: AppConfig; // snapshot da config no momento do cálculo
   breakdown: CostBreakdown;
@@ -79,7 +80,16 @@ export function uid(): string {
 
 // ---- Perfis de filamento ----
 export async function listFilaments(): Promise<FilamentProfile[]> {
-  return db.filaments.orderBy('createdAt').reverse().toArray();
+  const all = await db.filaments.toArray();
+  // ordena por marca (sem marca por último), depois por nome
+  return all.sort((a, b) => {
+    const ka = a.brand?.trim() || 'zzzz';
+    const kb = b.brand?.trim() || 'zzzz';
+    return (
+      ka.localeCompare(kb, 'pt', { sensitivity: 'base' }) ||
+      a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' })
+    );
+  });
 }
 
 export async function saveFilament(

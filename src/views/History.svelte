@@ -12,8 +12,18 @@
     const list = $history ?? [];
     const q = query.trim().toLowerCase();
     if (!q) return list;
-    return list.filter((r) => r.label.toLowerCase().includes(q));
+    return list.filter(
+      (r) =>
+        r.label.toLowerCase().includes(q) ||
+        (r.tags ?? []).some((t) => t.toLowerCase().includes(q))
+    );
   });
+
+  function remover(rec: HistoryRecord) {
+    if (confirm(`Excluir a peça "${rec.label}"? Esta ação não pode ser desfeita.`)) {
+      deleteHistory(rec.id);
+    }
+  }
 
   function toggle(id: string) {
     open = open === id ? null : id;
@@ -53,6 +63,13 @@
           <div class="min-w-0">
             <p class="truncate font-medium">{rec.label}</p>
             <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
+            {#if rec.tags && rec.tags.length}
+              <div class="mt-1 flex flex-wrap gap-1">
+                {#each rec.tags as tag (tag)}
+                  <span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">{tag}</span>
+                {/each}
+              </div>
+            {/if}
           </div>
           <div class="text-right">
             <p class="text-xs text-slate-500">Venda</p>
@@ -74,7 +91,7 @@
             </ul>
             <div class="mt-3 flex gap-4">
               <button class="text-sm font-medium text-sky-600" onclick={() => editHistory(rec)}>Editar</button>
-              <button class="text-sm text-red-500" onclick={() => deleteHistory(rec.id)}>Excluir</button>
+              <button class="text-sm text-red-500" onclick={() => remover(rec)}>Excluir</button>
             </div>
           </div>
         {/if}

@@ -20,6 +20,8 @@
 
   async function salvar() {
     if (!editing || !editing.name?.trim()) return;
+    const acao = editing.id ? 'Atualizar' : 'Cadastrar';
+    if (!confirm(`${acao} o filamento "${editing.name.trim()}"?`)) return;
     await saveFilament({
       id: editing.id,
       name: editing.name.trim(),
@@ -32,8 +34,8 @@
     editing = null;
   }
 
-  async function remover(id: string) {
-    await deleteFilament(id);
+  async function remover(f: FilamentProfile) {
+    if (confirm(`Excluir o filamento "${f.name}"?`)) await deleteFilament(f.id);
   }
 </script>
 
@@ -94,7 +96,7 @@
             <p class="text-xs text-slate-500">{f.type}{f.brand ? ' · ' + f.brand : ''} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
           </div>
           <button class="text-sm text-sky-600" onclick={() => editar(f)}>Editar</button>
-          <button class="text-sm text-red-500" onclick={() => remover(f.id)}>Excluir</button>
+          <button class="text-sm text-red-500" onclick={() => remover(f)}>Excluir</button>
         </div>
       {/each}
     </div>

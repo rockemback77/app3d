@@ -18,6 +18,8 @@
 
   async function salvar() {
     if (!editing || !editing.name?.trim()) return;
+    const acao = editing.id ? 'Atualizar' : 'Cadastrar';
+    if (!confirm(`${acao} o custo "${editing.name.trim()}"?`)) return;
     await saveCostItem({
       id: editing.id,
       name: editing.name.trim(),
@@ -26,8 +28,8 @@
     editing = null;
   }
 
-  async function remover(id: string) {
-    await deleteCostItem(id);
+  async function remover(c: CostItem) {
+    if (confirm(`Excluir o custo "${c.name}"?`)) await deleteCostItem(c.id);
   }
 </script>
 
@@ -73,7 +75,7 @@
             <p class="text-xs text-slate-500">{c.costCentavos ? formatBRL(c.costCentavos) : 'sem valor padrão'}</p>
           </div>
           <button class="text-sm text-sky-600" onclick={() => editar(c)}>Editar</button>
-          <button class="text-sm text-red-500" onclick={() => remover(c.id)}>Excluir</button>
+          <button class="text-sm text-red-500" onclick={() => remover(c)}>Excluir</button>
         </div>
       {/each}
     </div>

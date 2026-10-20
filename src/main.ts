@@ -7,7 +7,9 @@ import { startSettingsPersistence, settings } from './lib/stores/settings.svelte
 import { ensureDefaultCostItems, seedFilamentsIfEmpty, seedExamplePieceIfEmpty } from './lib/db';
 import { startAuth } from './lib/stores/auth.svelte';
 import { syncOnLogin } from './lib/sync.svelte';
+import { initTheme } from './lib/stores/theme.svelte';
 
+initTheme();
 initPWA();
 startSettingsPersistence();
 void requestPersistentStorage();
