@@ -8,10 +8,9 @@ export function defaultConfig(): AppConfig {
     kwhPriceCentavos: 95, // R$ 0,95 / kWh
     printerWatts: 150,
     wearParts: [
-      { id: uid(), name: 'Bico (nozzle)', costCentavos: 2500, intervalMonths: 6 },
-      { id: uid(), name: 'Placa / correias', costCentavos: 12000, intervalMonths: 24 },
+      { id: uid(), name: 'Bico (nozzle)', costCentavos: 2500, lifespanHours: 500 },
+      { id: uid(), name: 'Placa / correias', costCentavos: 12000, lifespanHours: 2000 },
     ],
-    hoursPerMonth: 120,
     laborRateCentavos: 2000, // R$ 20,00 / hora
     marketplaces: [
       { id: uid(), name: 'Mercado Livre Clássico', ratePercent: 12 },
@@ -26,12 +25,24 @@ function load(): AppConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultConfig();
-    const parsed = JSON.parse(raw) as Partial<AppConfig>;
+    const parsed = JSON.parse(raw) as Partial<AppConfig> & {
+      hoursPerMonth?: number;
+      wearParts?: (WearPart & { intervalMonths?: number })[];
+    };
     const base = defaultConfig();
+    // migra peças de desgaste do modelo antigo (meses + horas/mês) para vida útil em horas
+    const legacyHpm = parsed.hoursPerMonth || 120;
+    const wearParts = (parsed.wearParts ?? base.wearParts).map((p) => ({
+      id: p.id,
+      name: p.name,
+      costCentavos: p.costCentavos,
+      lifespanHours:
+        p.lifespanHours ?? (p.intervalMonths ? p.intervalMonths * legacyHpm : 1000),
+    }));
     return {
       ...base,
       ...parsed,
-      wearParts: parsed.wearParts ?? base.wearParts,
+      wearParts,
       marketplaces: parsed.marketplaces ?? base.marketplaces,
       tags: parsed.tags ?? base.tags,
     };
@@ -72,7 +83,7 @@ export function replaceSettings(next: AppConfig): void {
 }
 
 export function addWearPart(): void {
-  settings.wearParts.push({ id: uid(), name: '', costCentavos: 0, intervalMonths: 12 });
+  settings.wearParts.push({ id: uid(), name: '', costCentavos: 0, lifespanHours: 1000 });
   persistSettings();
 }
 

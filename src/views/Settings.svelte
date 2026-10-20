@@ -11,7 +11,7 @@
     addTag,
     removeTag,
   } from '../lib/stores/settings.svelte';
-  import { wearPerHourCentavos, monthlyWearCentavos } from '../lib/engine/costs';
+  import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
   import { auth, signIn, signUp, signOut } from '../lib/stores/auth.svelte';
@@ -66,7 +66,6 @@
   }
 
   let wearHour = $derived(wearPerHourCentavos(settings));
-  let monthlyWear = $derived(monthlyWearCentavos(settings));
 
   let showWatts = $state(false);
   let novaTag = $state('');
@@ -220,7 +219,7 @@
   <!-- Desgaste -->
   <section class="glass p-4">
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Desgaste da máquina</h2>
-    <p class="mb-3 text-xs text-slate-500">Peças de troca e a cada quantos meses. Rateado pelas horas de impressão/mês.</p>
+    <p class="mb-3 text-xs text-slate-500">Peças de troca e sua vida útil em horas de impressão. O custo é rateado por hora impressa.</p>
     <div class="space-y-3">
       {#each settings.wearParts as part (part.id)}
         <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
@@ -240,8 +239,8 @@
               <CurrencyInput bind:value={part.costCentavos} />
             </label>
             <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Troca a cada</span>
-              <NumberInput bind:value={part.intervalMonths} suffix="mês" decimals={0} />
+              <span class="mb-1 block text-xs text-slate-500">Vida útil</span>
+              <NumberInput bind:value={part.lifespanHours} suffix="h" decimals={0} />
             </label>
           </div>
         </div>
@@ -253,19 +252,15 @@
         <p class="mb-1.5 font-semibold text-slate-600 dark:text-slate-300">Como o desgaste é calculado</p>
         <ul class="space-y-0.5 text-slate-500 dark:text-slate-400">
           {#each settings.wearParts as part (part.id)}
-            {#if part.intervalMonths > 0}
+            {#if part.lifespanHours > 0}
               <li class="flex justify-between gap-2">
-                <span class="min-w-0 truncate">{part.name || 'Peça'}: {formatBRL(part.costCentavos)} ÷ {part.intervalMonths} {part.intervalMonths === 1 ? 'mês' : 'meses'}</span>
-                <span class="shrink-0">{formatBRL(Math.round(part.costCentavos / part.intervalMonths))}/mês</span>
+                <span class="min-w-0 truncate">{part.name || 'Peça'}: {formatBRL(part.costCentavos)} ÷ {part.lifespanHours} h</span>
+                <span class="shrink-0">{formatBRL(Math.round(part.costCentavos / part.lifespanHours))}/h</span>
               </li>
             {/if}
           {/each}
-          <li class="flex justify-between gap-2 border-t border-slate-200 pt-1 font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
-            <span>Soma mensal</span><span>{formatBRL(Math.round(monthlyWear))}/mês</span>
-          </li>
-          <li class="flex justify-between gap-2">
-            <span>÷ {settings.hoursPerMonth || 0} h/mês</span>
-            <span class="font-bold text-slate-700 dark:text-slate-200">{formatBRL(Math.round(wearHour))}/hora</span>
+          <li class="flex justify-between gap-2 border-t border-slate-200 pt-1 font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200">
+            <span>Desgaste por hora</span><span>{formatBRL(Math.round(wearHour))}/hora</span>
           </li>
         </ul>
       </div>

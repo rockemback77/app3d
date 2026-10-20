@@ -19,18 +19,12 @@ export function energyCostCentavos(config: AppConfig, printHours: number): numbe
   return Math.round(kwh * config.kwhPriceCentavos);
 }
 
-/** Custo mensal de desgaste = Σ(custo da peça / intervalo em meses). */
-export function monthlyWearCentavos(config: AppConfig): number {
-  return config.wearParts.reduce((sum, p) => {
-    if (!p.intervalMonths || p.intervalMonths <= 0) return sum;
-    return sum + p.costCentavos / p.intervalMonths;
-  }, 0);
-}
-
-/** Desgaste por hora = custo mensal / horas de impressão por mês. */
+/** Desgaste por hora = Σ(custo da peça / vida útil em horas). */
 export function wearPerHourCentavos(config: AppConfig): number {
-  if (!config.hoursPerMonth || config.hoursPerMonth <= 0) return 0;
-  return monthlyWearCentavos(config) / config.hoursPerMonth;
+  return config.wearParts.reduce((sum, p) => {
+    if (!p.lifespanHours || p.lifespanHours <= 0) return sum;
+    return sum + p.costCentavos / p.lifespanHours;
+  }, 0);
 }
 
 /** Custo de desgaste do job = desgaste/hora * horas da impressão. */

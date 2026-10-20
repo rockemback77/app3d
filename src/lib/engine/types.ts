@@ -4,7 +4,7 @@ export interface WearPart {
   id: string;
   name: string;
   costCentavos: number; // custo da peça/manutenção
-  intervalMonths: number; // troca a cada N meses
+  lifespanHours: number; // vida útil em horas de impressão
 }
 
 export interface MarketplacePreset {
@@ -17,7 +17,6 @@ export interface AppConfig {
   kwhPriceCentavos: number; // R$/kWh
   printerWatts: number; // potência da impressora (W)
   wearParts: WearPart[];
-  hoursPerMonth: number; // horas de impressão por mês (p/ ratear desgaste)
   laborRateCentavos: number; // R$/hora de mão de obra padrão
   marketplaces: MarketplacePreset[];
   tags: string[]; // tags pré-definidas para as peças
