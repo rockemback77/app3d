@@ -395,18 +395,18 @@
   <!-- Resultado -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
     <!-- Custo total destacado (gasto = vermelho) -->
-    <div class="rounded-xl bg-red-50 p-4 text-center ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-800">
-      <p class="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-400">Custo total (gasto)</p>
-      <p class="mt-1 text-3xl font-extrabold text-red-700 dark:text-red-300">{formatBRL(breakdown.totalCostCentavos)}</p>
+    <div class="rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-4 text-center text-white shadow-lg shadow-red-500/25">
+      <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Custo total (gasto)</p>
+      <p class="mt-1 text-3xl font-extrabold">{formatBRL(breakdown.totalCostCentavos)}</p>
     </div>
     <div class="mt-3 grid grid-cols-2 gap-3">
-      <div class="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-900/50">
-        <p class="text-xs text-slate-500">Preço de venda</p>
+      <div class="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-3 text-center text-white shadow-md shadow-sky-500/20">
+        <p class="text-xs font-medium text-white/80">Preço de venda</p>
         <p class="mt-0.5 text-xl font-bold">{formatBRL(breakdown.finalPriceCentavos)}</p>
       </div>
-      <div class="rounded-lg bg-emerald-50 p-3 text-center dark:bg-emerald-950/40">
-        <p class="text-xs text-slate-500">Lucro</p>
-        <p class="mt-0.5 text-xl font-bold {lucro >= 0 ? 'text-emerald-600' : 'text-red-500'}">{formatBRL(lucro)}</p>
+      <div class="rounded-2xl p-3 text-center text-white shadow-md {lucro >= 0 ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}">
+        <p class="text-xs font-medium text-white/80">Lucro</p>
+        <p class="mt-0.5 text-xl font-bold">{formatBRL(lucro)}</p>
       </div>
     </div>
     <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
@@ -421,7 +421,7 @@
       {/if}
     </ul>
     <div class="mt-4">
-      <button class="w-full rounded-lg px-3 py-2 font-semibold text-white {editingId ? 'bg-amber-500 hover:bg-amber-400' : 'bg-emerald-600 hover:bg-emerald-500'}" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
+      <button class="w-full rounded-xl px-3 py-2.5 font-semibold text-white shadow-md transition-transform active:scale-95 {editingId ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/25' : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25'}" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
     </div>
     {#if savedMsg}<p class="mt-1 text-center text-sm text-emerald-600">{savedMsg}</p>{/if}
   </section>

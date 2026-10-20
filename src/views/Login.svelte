@@ -47,14 +47,14 @@
 <div class="flex min-h-screen flex-col items-center justify-center p-6">
   <div class="w-full max-w-sm">
     <div class="mb-8 text-center">
-      <div class="mb-2 text-5xl">🧮</div>
-      <h1 class="text-2xl font-bold">Calculadora de Custo 3D</h1>
+      <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-500 to-sky-500 text-4xl shadow-lg shadow-violet-500/30">🖨️</div>
+      <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">Calculadora de Custo 3D</h1>
       <p class="mt-1 text-sm text-slate-500">
         {modo === 'login' ? 'Entre para acessar seus dados' : 'Crie sua conta'}
       </p>
     </div>
 
-    <div class="space-y-2 rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800">
+    <div class="space-y-2 rounded-3xl bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur dark:bg-slate-800/90 dark:shadow-black/30">
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         type="email"
@@ -72,7 +72,7 @@
         onkeydown={onKey}
       />
       <button
-        class="w-full rounded-lg py-2.5 font-semibold text-white disabled:opacity-50 {modo === 'cadastro' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-sky-500 hover:bg-sky-400'}"
+        class="w-full rounded-xl py-2.5 font-semibold text-white shadow-md transition-transform active:scale-95 disabled:opacity-50 {modo === 'cadastro' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/30' : 'bg-gradient-to-r from-violet-500 to-sky-500 shadow-violet-500/30'}"
         disabled={busy || !email || !senha}
         onclick={entrar}
       >
