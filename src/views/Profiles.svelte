@@ -24,6 +24,22 @@
     return out;
   });
 
+  let marcaFiltro = $state<string | null>(null);
+
+  // marcas já cadastradas (para sugerir no form e filtrar a lista)
+  let marcas = $derived.by(() => {
+    const set = new Set<string>();
+    for (const f of $filaments ?? []) {
+      const b = f.brand?.trim();
+      if (b) set.add(b);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'pt', { sensitivity: 'base' }));
+  });
+
+  let gruposFiltrados = $derived(
+    marcaFiltro ? grupos.filter((g) => g.brand === marcaFiltro) : grupos
+  );
+
   let editing = $state<Partial<FilamentProfile> | null>(null);
 
   function novo() {
@@ -88,7 +104,10 @@
         </div>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marca (opcional)</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" maxlength="40" />
+          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" maxlength="40" list="marcas-cadastradas" />
+          <datalist id="marcas-cadastradas">
+            {#each marcas as m (m)}<option value={m}></option>{/each}
+          </datalist>
         </label>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Preço por kg *</span>
@@ -103,8 +122,20 @@
   {/if}
 
   {#if $filaments && $filaments.length > 0}
+    {#if marcas.length}
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="rounded-full px-3 py-1 text-xs font-medium transition-colors {marcaFiltro === null ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+          onclick={() => (marcaFiltro = null)}>Todas</button>
+        {#each marcas as m (m)}
+          <button
+            class="rounded-full px-3 py-1 text-xs font-medium transition-colors {marcaFiltro === m ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+            onclick={() => (marcaFiltro = marcaFiltro === m ? null : m)}>{m}</button>
+        {/each}
+      </div>
+    {/if}
     <div class="space-y-4">
-      {#each grupos as g (g.brand)}
+      {#each gruposFiltrados as g (g.brand)}
         <div>
           <h3 class="mb-1.5 flex items-center gap-2 px-1">
             <span class="rounded-full bg-gradient-to-r from-violet-500 to-sky-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">{g.brand}</span>
