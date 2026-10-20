@@ -14,8 +14,6 @@
   import { wearPerHourCentavos, monthlyWearCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
-  import { liveQuery } from 'dexie';
-  import { listTransactions, listHistory } from '../lib/db';
   import { auth, signIn, signUp, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
   import { theme, setTheme, type Theme } from '../lib/stores/theme.svelte';
@@ -70,26 +68,6 @@
   let wearHour = $derived(wearPerHourCentavos(settings));
   let monthlyWear = $derived(monthlyWearCentavos(settings));
 
-  // sugestão de horas/mês a partir das vendas (receitas) cadastradas
-  const txs = liveQuery(() => listTransactions());
-  const pecasHist = liveQuery(() => listHistory());
-  let sugestaoHoras = $derived.by(() => {
-    const t = $txs ?? [];
-    const h = $pecasHist ?? [];
-    const horasPorPeca = new Map(h.map((r) => [r.id, r.job.printHours || 0]));
-    const meses = new Map<string, number>(); // 'YYYY-MM' -> horas no mês
-    for (const x of t) {
-      if (x.type !== 'receita' || !x.refId) continue;
-      const ph = horasPorPeca.get(x.refId);
-      if (ph == null) continue; // peça não encontrada (excluída)
-      const k = x.date.slice(0, 7);
-      meses.set(k, (meses.get(k) || 0) + ph * (x.quantity || 0));
-    }
-    if (meses.size === 0) return null;
-    const total = [...meses.values()].reduce((a, b) => a + b, 0);
-    return { horas: total / meses.size, meses: meses.size };
-  });
-
   let showWatts = $state(false);
   let novaTag = $state('');
   function adicionarTag() {
@@ -105,12 +83,6 @@
     { nome: 'Bambu Lab P1S', w: '105 W', kwh: '1,05 kWh' },
     { nome: 'Bambu Lab X1 Carbon', w: '105 W', kwh: '1,05 kWh' },
   ];
-
-  function aplicarSugestao() {
-    if (!sugestaoHoras) return;
-    settings.hoursPerMonth = Math.round(sugestaoHoras.horas);
-    persistSettings();
-  }
 
   async function onImportFile(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -277,14 +249,6 @@
       <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar</button>
     </div>
     <div class="mt-3">
-      {#if sugestaoHoras}
-        <div class="mt-2 rounded-lg bg-sky-50 p-3 text-xs text-sky-800 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-800">
-          De acordo com suas vendas cadastradas, sua média de impressão é de
-          <span class="font-bold">{Math.round(sugestaoHoras.horas)} h/mês</span>
-          <span class="text-sky-600 dark:text-sky-400">({sugestaoHoras.meses} {sugestaoHoras.meses === 1 ? 'mês' : 'meses'} com registro)</span>.
-          <button class="mt-1 block font-semibold underline" onclick={aplicarSugestao}>Usar esse valor</button>
-        </div>
-      {/if}
       <div class="mt-3 rounded-lg bg-slate-50/70 p-3 text-xs dark:bg-slate-900/40">
         <p class="mb-1.5 font-semibold text-slate-600 dark:text-slate-300">Como o desgaste é calculado</p>
         <ul class="space-y-0.5 text-slate-500 dark:text-slate-400">
