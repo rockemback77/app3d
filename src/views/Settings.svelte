@@ -14,6 +14,7 @@
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
+  import { countHistoryWithTag, removeTagFromAllHistory } from '../lib/db';
   import { auth, signIn, signUp, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
   import { theme, setTheme, type Theme } from '../lib/stores/theme.svelte';
@@ -72,6 +73,17 @@
   function adicionarTag() {
     addTag(novaTag);
     novaTag = '';
+  }
+  async function removerTag(tag: string) {
+    const n = await countHistoryWithTag(tag);
+    if (n > 0) {
+      const ok = confirm(
+        `${n} peça(s) usam a tag "${tag}". Excluir mesmo assim? A tag será removida dessas peças (as outras tags permanecem).`
+      );
+      if (!ok) return;
+      await removeTagFromAllHistory(tag);
+    }
+    removeTag(tag);
   }
   const printersInfo = [
     { nome: 'Bambu Lab A1 Mini', w: '80 W', kwh: '0,80 kWh' },
@@ -221,7 +233,7 @@
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Desgaste da máquina</h2>
     <p class="mb-3 text-xs text-slate-500">Peças de troca e sua vida útil em horas de impressão. O custo é rateado por hora impressa.</p>
     <div class="space-y-3">
-      {#each settings.wearParts as part (part.id)}
+      {#each settings.wearParts ?? [] as part (part.id)}
         <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
           <div class="mb-2 flex items-center justify-between gap-2">
             <input
@@ -251,7 +263,7 @@
       <div class="mt-3 rounded-lg bg-slate-50/70 p-3 text-xs dark:bg-slate-900/40">
         <p class="mb-1.5 font-semibold text-slate-600 dark:text-slate-300">Como o desgaste é calculado</p>
         <ul class="space-y-0.5 text-slate-500 dark:text-slate-400">
-          {#each settings.wearParts as part (part.id)}
+          {#each settings.wearParts ?? [] as part (part.id)}
             {#if part.lifespanHours > 0}
               <li class="flex justify-between gap-2">
                 <span class="min-w-0 truncate">{part.name || 'Peça'}: {formatBRL(part.costCentavos)} ÷ {part.lifespanHours} h</span>
@@ -281,7 +293,7 @@
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Marketplaces</h2>
     <p class="mb-3 text-xs text-slate-500">Taxa % aplicada sobre o preço de venda.</p>
     <div class="space-y-2">
-      {#each settings.marketplaces as mp (mp.id)}
+      {#each settings.marketplaces ?? [] as mp (mp.id)}
         <div class="flex items-center gap-2">
           <input
             class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
@@ -316,10 +328,10 @@
     </div>
     {#if settings.tags.length}
       <div class="flex flex-wrap gap-2">
-        {#each settings.tags as tag (tag)}
+        {#each settings.tags ?? [] as tag (tag)}
           <span class="flex items-center gap-1.5 rounded-full bg-sky-100 py-1 pl-3 pr-1.5 text-xs font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
             {tag}
-            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-200 text-sky-700 hover:bg-sky-300 dark:bg-sky-700 dark:text-sky-200" aria-label="Remover {tag}" onclick={() => removeTag(tag)}>×</button>
+            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-200 text-sky-700 hover:bg-sky-300 dark:bg-sky-700 dark:text-sky-200" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
           </span>
         {/each}
       </div>

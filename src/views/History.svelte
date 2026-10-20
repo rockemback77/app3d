@@ -56,12 +56,12 @@
       {/if}
     </div>
 
-    {#if settings.tags.length}
+    {#if settings.tags?.length}
       <div class="flex flex-wrap gap-2">
         <button
           class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagFiltro === null ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
           onclick={() => (tagFiltro = null)}>Todas</button>
-        {#each settings.tags as tag (tag)}
+        {#each settings.tags ?? [] as tag (tag)}
           <button
             class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagFiltro === tag ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
             onclick={() => (tagFiltro = tagFiltro === tag ? null : tag)}>{tag}</button>

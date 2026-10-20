@@ -21,34 +21,40 @@ export function defaultConfig(): AppConfig {
   };
 }
 
+/** Normaliza qualquer config (localStorage, nuvem ou backup): aplica defaults e migra formato antigo. */
+function normalize(input: unknown): AppConfig {
+  const base = defaultConfig();
+  if (!input || typeof input !== 'object') return base;
+  const parsed = input as Partial<AppConfig> & {
+    hoursPerMonth?: number;
+    wearParts?: (WearPart & { intervalMonths?: number })[];
+  };
+  // migra peças de desgaste do modelo antigo (meses + horas/mês) para vida útil em horas
+  const legacyHpm = parsed.hoursPerMonth || 120;
+  const srcParts = (
+    Array.isArray(parsed.wearParts) ? parsed.wearParts : base.wearParts
+  ) as (WearPart & { intervalMonths?: number })[];
+  const wearParts = srcParts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    costCentavos: p.costCentavos,
+    lifespanHours: p.lifespanHours ?? (p.intervalMonths ? p.intervalMonths * legacyHpm : 1000),
+  }));
+  return {
+    kwhPriceCentavos: parsed.kwhPriceCentavos ?? base.kwhPriceCentavos,
+    printerWatts: parsed.printerWatts ?? base.printerWatts,
+    laborRateCentavos: parsed.laborRateCentavos ?? base.laborRateCentavos,
+    wearParts,
+    marketplaces: Array.isArray(parsed.marketplaces) ? parsed.marketplaces : base.marketplaces,
+    tags: Array.isArray(parsed.tags) ? parsed.tags : base.tags,
+  };
+}
+
 function load(): AppConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultConfig();
-    const parsed = JSON.parse(raw) as Partial<AppConfig> & {
-      hoursPerMonth?: number;
-      wearParts?: (WearPart & { intervalMonths?: number })[];
-    };
-    const base = defaultConfig();
-    // migra peças de desgaste do modelo antigo (meses + horas/mês) para vida útil em horas
-    const legacyHpm = parsed.hoursPerMonth || 120;
-    const srcParts = (parsed.wearParts ?? base.wearParts) as (WearPart & {
-      intervalMonths?: number;
-    })[];
-    const wearParts = srcParts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      costCentavos: p.costCentavos,
-      lifespanHours:
-        p.lifespanHours ?? (p.intervalMonths ? p.intervalMonths * legacyHpm : 1000),
-    }));
-    return {
-      ...base,
-      ...parsed,
-      wearParts,
-      marketplaces: parsed.marketplaces ?? base.marketplaces,
-      tags: parsed.tags ?? base.tags,
-    };
+    return normalize(JSON.parse(raw));
   } catch {
     return defaultConfig();
   }
@@ -79,9 +85,9 @@ export function startSettingsPersistence(): void {
   });
 }
 
-/** Substitui toda a config (usado no import de backup). */
-export function replaceSettings(next: AppConfig): void {
-  Object.assign(settings, defaultConfig(), next);
+/** Substitui toda a config (import de backup ou sync da nuvem). Normaliza antes. */
+export function replaceSettings(next: unknown): void {
+  Object.assign(settings, normalize(next));
   persistSettings();
 }
 

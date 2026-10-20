@@ -278,6 +278,25 @@ export async function deleteHistory(id: string): Promise<void> {
   await db.history.delete(id);
 }
 
+/** Conta quantas peças usam uma tag (case-insensitive). */
+export async function countHistoryWithTag(tag: string): Promise<number> {
+  const t = tag.toLowerCase();
+  const all = await db.history.toArray();
+  return all.filter((r) => (r.tags ?? []).some((x) => x.toLowerCase() === t)).length;
+}
+
+/** Remove uma tag de todas as peças que a possuem. Retorna quantas foram alteradas. */
+export async function removeTagFromAllHistory(tag: string): Promise<number> {
+  const t = tag.toLowerCase();
+  const all = await db.history.toArray();
+  const afetadas = all.filter((r) => (r.tags ?? []).some((x) => x.toLowerCase() === t));
+  for (const rec of afetadas) {
+    rec.tags = (rec.tags ?? []).filter((x) => x.toLowerCase() !== t);
+    await db.history.put(rec);
+  }
+  return afetadas.length;
+}
+
 // ---- Vendas (receitas e despesas) ----
 export async function listTransactions(): Promise<Transaction[]> {
   return db.transactions.orderBy('date').reverse().toArray();

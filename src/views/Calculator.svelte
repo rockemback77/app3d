@@ -231,7 +231,7 @@
       <p class="mb-2 text-xs text-slate-400">As tags são cadastradas na aba Configurações.</p>
       {#if settings.tags.length}
         <div class="flex flex-wrap gap-2">
-          {#each settings.tags as tag (tag)}
+          {#each settings.tags ?? [] as tag (tag)}
             <button
               type="button"
               class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagsAtivas.has(tag.toLowerCase())
@@ -420,7 +420,7 @@
         <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marketplace</span>
         <select class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={job.marketplaceId}>
           <option value={null}>Não aplicável</option>
-          {#each settings.marketplaces as mp (mp.id)}
+          {#each settings.marketplaces ?? [] as mp (mp.id)}
             <option value={mp.id}>{mp.name} ({mp.ratePercent}%)</option>
           {/each}
         </select>
