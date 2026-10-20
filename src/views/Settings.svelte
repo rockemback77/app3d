@@ -9,7 +9,7 @@
     addMarketplace,
     removeMarketplace,
   } from '../lib/stores/settings.svelte';
-  import { wearPerHourCentavos } from '../lib/engine/costs';
+  import { wearPerHourCentavos, monthlyWearCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
   import { liveQuery } from 'dexie';
@@ -66,6 +66,7 @@
   }
 
   let wearHour = $derived(wearPerHourCentavos(settings));
+  let monthlyWear = $derived(monthlyWearCentavos(settings));
 
   // sugestão de horas/mês a partir das vendas (receitas) cadastradas
   const txs = liveQuery(() => listTransactions());
@@ -211,7 +212,7 @@
               bind:value={part.name}
               oninput={persistSettings}
             />
-            <button class="shrink-0 text-red-500" onclick={() => removerPeca(part)}>Remover</button>
+            <button class="shrink-0 rounded-lg bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-500/30" onclick={() => removerPeca(part)}>Remover</button>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <label class="block">
@@ -225,7 +226,7 @@
           </div>
         </div>
       {/each}
-      <button class="text-sm font-medium text-sky-600" onclick={addWearPart}>+ Adicionar peça</button>
+      <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar peça</button>
     </div>
     <div class="mt-3">
       <label class="block">
@@ -240,9 +241,26 @@
           <button class="mt-1 block font-semibold underline" onclick={aplicarSugestao}>Usar esse valor</button>
         </div>
       {/if}
-      <p class="mt-2 text-sm text-slate-500">
-        Desgaste calculado: <span class="font-semibold text-slate-700 dark:text-slate-200">{formatBRL(Math.round(wearHour))}/hora</span>
-      </p>
+      <div class="mt-3 rounded-lg bg-slate-50/70 p-3 text-xs dark:bg-slate-900/40">
+        <p class="mb-1.5 font-semibold text-slate-600 dark:text-slate-300">Como o desgaste é calculado</p>
+        <ul class="space-y-0.5 text-slate-500 dark:text-slate-400">
+          {#each settings.wearParts as part (part.id)}
+            {#if part.intervalMonths > 0}
+              <li class="flex justify-between gap-2">
+                <span class="min-w-0 truncate">{part.name || 'Peça'}: {formatBRL(part.costCentavos)} ÷ {part.intervalMonths} {part.intervalMonths === 1 ? 'mês' : 'meses'}</span>
+                <span class="shrink-0">{formatBRL(Math.round(part.costCentavos / part.intervalMonths))}/mês</span>
+              </li>
+            {/if}
+          {/each}
+          <li class="flex justify-between gap-2 border-t border-slate-200 pt-1 font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <span>Soma mensal</span><span>{formatBRL(Math.round(monthlyWear))}/mês</span>
+          </li>
+          <li class="flex justify-between gap-2">
+            <span>÷ {settings.hoursPerMonth || 0} h/mês</span>
+            <span class="font-bold text-slate-700 dark:text-slate-200">{formatBRL(Math.round(wearHour))}/hora</span>
+          </li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -272,10 +290,10 @@
           <div class="w-24 shrink-0">
             <NumberInput bind:value={mp.ratePercent} suffix="%" decimals={1} />
           </div>
-          <button class="shrink-0 text-red-500" onclick={() => removerMarket(mp)}>✕</button>
+          <button class="shrink-0 rounded-lg bg-red-100 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-500/30" onclick={() => removerMarket(mp)}>✕</button>
         </div>
       {/each}
-      <button class="text-sm font-medium text-sky-600" onclick={addMarketplace}>+ Adicionar marketplace</button>
+      <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addMarketplace}>+ Adicionar marketplace</button>
     </div>
   </section>
 
