@@ -3,7 +3,7 @@
   import { ui, type Tab } from '../lib/stores/ui.svelte';
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'calc', label: 'Calcular', icon: '🖨️' },
+    { id: 'calc', label: 'Calcular custo', icon: '🖨️' },
     { id: 'profiles', label: 'Filamentos', icon: '🧵' },
     { id: 'costs', label: 'Custos', icon: '🧾' },
     { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
