@@ -61,7 +61,7 @@
         onkeydown={onKey}
       />
       <button
-        class="w-full rounded-lg bg-sky-500 py-2.5 font-semibold text-white hover:bg-sky-400 disabled:opacity-50"
+        class="w-full rounded-lg py-2.5 font-semibold text-white disabled:opacity-50 {modo === 'cadastro' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-sky-500 hover:bg-sky-400'}"
         disabled={busy || !email || !senha}
         onclick={entrar}
       >

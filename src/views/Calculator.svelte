@@ -37,6 +37,13 @@
     job.printHours = (hh || 0) + (mm || 0) / 60;
   });
 
+  // mão de obra em horas + minutos
+  let laborHh = $state(0);
+  let laborMm = $state(0);
+  $effect(() => {
+    job.laborHours = (laborHh || 0) + (laborMm || 0) / 60;
+  });
+
   let saveLabel = $state('');
   let savedMsg = $state('');
 
@@ -61,6 +68,8 @@
     job.marketplaceId = rec.job.marketplaceId;
     hh = Math.floor(rec.job.printHours);
     mm = Math.round((rec.job.printHours - hh) * 60);
+    laborHh = Math.floor(rec.job.laborHours);
+    laborMm = Math.round((rec.job.laborHours - laborHh) * 60);
     saveLabel = rec.label;
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
@@ -79,11 +88,15 @@
     job.marketplaceId = null;
     hh = 0;
     mm = 0;
+    laborHh = 0;
+    laborMm = 0;
     saveLabel = '';
     editingId = null;
   }
 
   let breakdown = $derived(computeBreakdown(settings, job));
+  // lucro = o que sobra pro vendedor (preço após margem, já líquido da taxa de marketplace) menos o custo
+  let lucro = $derived(breakdown.priceWithMarginCentavos - breakdown.totalCostCentavos);
 
   function setFilamentCount(n: number) {
     const target = Math.min(4, Math.max(1, n));
@@ -255,10 +268,13 @@
         onclick={() => (job.laborMode = 'fixed')}>Valor fixo</button>
     </div>
     {#if job.laborMode === 'hourly'}
-      <label class="block">
-        <span class="mb-1 block text-xs text-slate-500">Horas de trabalho (× {formatBRL(settings.laborRateCentavos)}/h)</span>
-        <NumberInput bind:value={job.laborHours} suffix="h" decimals={2} />
-      </label>
+      <div class="block">
+        <span class="mb-1 block text-xs text-slate-500">Tempo de trabalho (× {formatBRL(settings.laborRateCentavos)}/h)</span>
+        <div class="grid grid-cols-2 gap-2">
+          <NumberInput bind:value={laborHh} suffix="h" decimals={0} />
+          <NumberInput bind:value={laborMm} suffix="min" decimals={0} />
+        </div>
+      </div>
     {:else}
       <label class="block">
         <span class="mb-1 block text-xs text-slate-500">Valor fixo de mão de obra</span>
@@ -339,23 +355,23 @@
         </select>
       </label>
     </div>
-    {#if job.priceMode === 'fixed'}
-      <p class="mt-2 text-xs text-slate-500">
-        Lucro estimado: {formatBRL(breakdown.priceWithMarginCentavos - breakdown.totalCostCentavos)}
-      </p>
-    {/if}
   </section>
 
   <!-- Resultado -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
-    <div class="flex items-end justify-between">
-      <div>
-        <p class="text-xs text-slate-500">Custo total</p>
-        <p class="text-lg font-semibold">{formatBRL(breakdown.totalCostCentavos)}</p>
-      </div>
-      <div class="text-right">
+    <!-- Custo total destacado -->
+    <div class="rounded-xl bg-sky-50 p-4 text-center ring-1 ring-sky-200 dark:bg-sky-950/40 dark:ring-sky-800">
+      <p class="text-xs font-medium uppercase tracking-wide text-sky-600 dark:text-sky-400">Custo total (gasto)</p>
+      <p class="mt-1 text-3xl font-extrabold text-sky-700 dark:text-sky-300">{formatBRL(breakdown.totalCostCentavos)}</p>
+    </div>
+    <div class="mt-3 grid grid-cols-2 gap-3">
+      <div class="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-900/50">
         <p class="text-xs text-slate-500">Preço de venda</p>
-        <p class="text-3xl font-extrabold text-sky-600 dark:text-sky-400">{formatBRL(breakdown.finalPriceCentavos)}</p>
+        <p class="mt-0.5 text-xl font-bold">{formatBRL(breakdown.finalPriceCentavos)}</p>
+      </div>
+      <div class="rounded-lg bg-emerald-50 p-3 text-center dark:bg-emerald-950/40">
+        <p class="text-xs text-slate-500">Lucro</p>
+        <p class="mt-0.5 text-xl font-bold {lucro >= 0 ? 'text-emerald-600' : 'text-red-500'}">{formatBRL(lucro)}</p>
       </div>
     </div>
     <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">

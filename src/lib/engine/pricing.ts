@@ -9,9 +9,8 @@ import {
 
 /**
  * Preço de venda a partir do custo, margem e taxa de marketplace.
- * Fórmula correta: a taxa de marketplace incide sobre o PREÇO de venda, não sobre o custo.
- *   preçoComMargem = custo / (1 - margem%)
- *   preçoFinal     = preçoComMargem / (1 - taxa%)
+ *   preçoComMargem = custo × (1 + margem%)   // margem = acréscimo sobre o custo (markup); 100% = dobro
+ *   preçoFinal     = preçoComMargem / (1 - taxa%)  // taxa de marketplace incide sobre o PREÇO de venda
  */
 export function computeBreakdown(config: AppConfig, job: JobInputs): CostBreakdown {
   const filamentCentavos = totalFilamentCentavos(job);
@@ -24,12 +23,11 @@ export function computeBreakdown(config: AppConfig, job: JobInputs): CostBreakdo
     filamentCentavos + energyCentavos + wearCentavos + laborCentavos + miscCentavos;
 
   const margin = clampPercent(job.marginPercent);
+  // Margem = acréscimo sobre o custo (markup). 100% => dobro do custo.
   const priceWithMarginCentavos =
     job.priceMode === 'fixed'
       ? Math.max(0, Math.round(job.fixedPriceCentavos || 0))
-      : margin >= 100
-        ? totalCostCentavos
-        : Math.round(totalCostCentavos / (1 - margin / 100));
+      : Math.round(totalCostCentavos * (1 + margin / 100));
 
   const mp = job.marketplaceId
     ? config.marketplaces.find((m) => m.id === job.marketplaceId) ?? null
