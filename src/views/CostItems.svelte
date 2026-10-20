@@ -45,7 +45,7 @@
   </p>
 
   {#if editing}
-    <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-sky-200 dark:bg-slate-800 dark:ring-sky-800">
+    <div class="glass p-4 ring-1 ring-sky-300/60 dark:ring-sky-500/40">
       <h2 class="mb-3 font-semibold">{editing.id ? 'Editar' : 'Novo'} custo</h2>
       <div class="space-y-3">
         <label class="block">
@@ -68,7 +68,7 @@
   {#if $items && $items.length > 0}
     <div class="space-y-2">
       {#each $items as c (c.id)}
-        <div class="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+        <div class="flex items-center gap-3 glass p-3">
           <span class="text-lg">📦</span>
           <div class="min-w-0 flex-1">
             <p class="truncate font-medium">{c.name}</p>
@@ -80,7 +80,7 @@
       {/each}
     </div>
   {:else if !editing}
-    <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+    <p class="glass p-6 text-center text-sm text-slate-500">
       Nenhum custo cadastrado. Toque em <span class="font-semibold">+ Novo</span> para adicionar.
     </p>
   {/if}

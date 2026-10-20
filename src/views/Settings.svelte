@@ -111,7 +111,7 @@
   <h1 class="text-xl font-bold">Configurações</h1>
 
   <!-- Conta / nuvem -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Conta (nuvem)</h2>
     <p class="mb-3 text-xs text-slate-500">Entre para salvar seus dados na nuvem e acessá-los de outros aparelhos.</p>
 
@@ -167,7 +167,7 @@
   </section>
 
   <!-- Aparência / tema -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Aparência</h2>
     <div class="flex gap-2">
       {#each temas as t (t.id)}
@@ -182,7 +182,7 @@
   </section>
 
   <!-- Energia / Impressora -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Energia & Impressora</h2>
     <div class="space-y-3">
       <label class="block">
@@ -197,7 +197,7 @@
   </section>
 
   <!-- Desgaste -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Desgaste da máquina</h2>
     <p class="mb-3 text-xs text-slate-500">Peças de troca e a cada quantos meses. Rateado pelas horas de impressão/mês.</p>
     <div class="space-y-3">
@@ -247,7 +247,7 @@
   </section>
 
   <!-- Mão de obra -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Mão de obra</h2>
     <label class="block">
       <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Valor por hora (padrão)</span>
@@ -256,7 +256,7 @@
   </section>
 
   <!-- Marketplaces -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Marketplaces</h2>
     <p class="mb-3 text-xs text-slate-500">Taxa % aplicada sobre o preço de venda.</p>
     <div class="space-y-2">
@@ -280,7 +280,7 @@
   </section>
 
   <!-- Backup -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Backup dos dados</h2>
     <div class="flex gap-2">
       <button

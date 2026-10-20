@@ -206,7 +206,7 @@
   {/if}
 
   <!-- Nome da peça -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <label class="block">
       <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Nome da peça</span>
       <input
@@ -228,7 +228,7 @@
   </section>
 
   <!-- Filamentos -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-2 font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
     <div class="mb-3">
       <span class="mb-1 block text-xs text-slate-500">Quantidade de filamentos</span>
@@ -283,7 +283,7 @@
   </section>
 
   <!-- Tempo + mão de obra -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Tempo & mão de obra</h2>
     <div class="mb-3">
       <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tempo de impressão</span>
@@ -318,7 +318,7 @@
   </section>
 
   <!-- Custos avulsos -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
     <div class="space-y-3">
       {#each job.misc as m, i (i)}
@@ -358,7 +358,7 @@
   </section>
 
   <!-- Preço de venda -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Preço de venda</h2>
     <div class="mb-3 flex gap-2">
       <button
@@ -393,7 +393,7 @@
   </section>
 
   <!-- Resultado -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <!-- Custo total destacado (gasto = vermelho) -->
     <div class="rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-4 text-center text-white shadow-lg shadow-red-500/25">
       <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Custo total (gasto)</p>

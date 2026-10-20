@@ -35,6 +35,21 @@ html.dark body {
   min-height: 100%;
 }
 
+/* Card de vidro fosco (glassmorphism) */
+.glass {
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(2, 6, 23, 0.06);
+  box-shadow: 0 12px 32px -14px rgba(2, 6, 23, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+html.dark .glass {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.55);
+}
+
 /* input numérico sem setas */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {

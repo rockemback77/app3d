@@ -32,7 +32,7 @@
       <p class="mt-1 text-sm text-slate-500">Defina sua nova senha de acesso</p>
     </div>
 
-    <div class="space-y-2 rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800">
+    <div class="space-y-2 glass p-5">
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         type="password"

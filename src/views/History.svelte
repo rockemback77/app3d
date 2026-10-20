@@ -52,13 +52,13 @@
     </div>
 
     {#if filtered.length === 0}
-      <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+      <p class="glass p-6 text-center text-sm text-slate-500">
         Nenhuma peça encontrada para "<span class="font-medium">{query}</span>".
       </p>
     {/if}
 
     {#each filtered as rec (rec.id)}
-      <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+      <div class="glass p-3">
         <button class="flex w-full items-center justify-between gap-3 text-left" onclick={() => toggle(rec.id)}>
           <div class="min-w-0">
             <p class="truncate font-medium">{rec.label}</p>
@@ -98,7 +98,7 @@
       </div>
     {/each}
   {:else}
-    <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+    <p class="glass p-6 text-center text-sm text-slate-500">
       Nenhum cálculo salvo ainda. Faça um cálculo na aba <span class="font-semibold">Calcular</span> e toque em Salvar.
     </p>
   {/if}

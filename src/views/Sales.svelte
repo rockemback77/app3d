@@ -161,7 +161,7 @@
   <h1 class="text-xl font-bold">Receita × Despesas</h1>
 
   <!-- Formulário -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <div class="mb-3 flex gap-2">
       <button
         class="flex-1 rounded-lg py-1.5 text-sm font-medium {tipo === 'receita' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
@@ -244,7 +244,7 @@
   <!-- Lançamentos por mês + saldo -->
   {#if grupos.length}
     {#each grupos as g (g.key)}
-      <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+      <section class="glass p-4">
         <h2 class="mb-2 font-semibold capitalize text-sky-600 dark:text-sky-400">{monthLabel(g.key)}</h2>
         <div class="space-y-1">
           {#each g.items as t (t.id)}
@@ -269,13 +269,13 @@
       </section>
     {/each}
   {:else}
-    <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+    <p class="glass p-6 text-center text-sm text-slate-500">
       Nenhum lançamento ainda. Adicione uma receita ou despesa acima.
     </p>
   {/if}
 
   <!-- Gráfico -->
-  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+  <section class="glass p-4">
     <div class="mb-3 flex items-center justify-between">
       <h2 class="font-semibold text-sky-600 dark:text-sky-400">Receita × Despesa</h2>
       <label class="flex items-center gap-2 text-xs text-slate-500">

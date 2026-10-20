@@ -48,7 +48,7 @@
   </div>
 
   {#if editing}
-    <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-sky-200 dark:bg-slate-800 dark:ring-sky-800">
+    <div class="glass p-4 ring-1 ring-sky-300/60 dark:ring-sky-500/40">
       <h2 class="mb-3 font-semibold">{editing.id ? 'Editar' : 'Novo'} filamento</h2>
       <div class="space-y-3">
         <label class="block">
@@ -89,7 +89,7 @@
   {#if $filaments && $filaments.length > 0}
     <div class="space-y-2">
       {#each $filaments as f (f.id)}
-        <div class="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+        <div class="flex items-center gap-3 glass p-3">
           <span class="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/10" style="background:{f.color}"></span>
           <div class="min-w-0 flex-1">
             <p class="truncate font-medium">{f.name}</p>
@@ -101,7 +101,7 @@
       {/each}
     </div>
   {:else if !editing}
-    <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+    <p class="glass p-6 text-center text-sm text-slate-500">
       Nenhum filamento salvo. Toque em <span class="font-semibold">+ Novo</span> para cadastrar os que você mais usa.
     </p>
   {/if}
