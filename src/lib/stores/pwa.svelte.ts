@@ -14,13 +14,21 @@ export const pwa = $state({
 let updateSW: ((reload?: boolean) => Promise<void>) | null = null;
 let deferredPrompt: any = null;
 
+function isNative(): boolean {
+  return Boolean((window as any).Capacitor?.isNativePlatform?.());
+}
+
 export function initPWA(): void {
   // detecção de plataforma / modo instalado
   const ua = navigator.userAgent || '';
   pwa.isIOS = /iphone|ipad|ipod/i.test(ua);
   pwa.isStandalone =
+    isNative() ||
     (navigator as any).standalone === true ||
     window.matchMedia('(display-mode: standalone)').matches;
+
+  // Em app nativo (Capacitor) não há service worker — assets já são locais.
+  if (isNative()) return;
 
   // registro do service worker com fluxo de update por clique
   updateSW = registerSW({
