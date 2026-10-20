@@ -362,10 +362,10 @@
 
   <!-- Resultado -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
-    <!-- Custo total destacado -->
-    <div class="rounded-xl bg-sky-50 p-4 text-center ring-1 ring-sky-200 dark:bg-sky-950/40 dark:ring-sky-800">
-      <p class="text-xs font-medium uppercase tracking-wide text-sky-600 dark:text-sky-400">Custo total (gasto)</p>
-      <p class="mt-1 text-3xl font-extrabold text-sky-700 dark:text-sky-300">{formatBRL(breakdown.totalCostCentavos)}</p>
+    <!-- Custo total destacado (gasto = vermelho) -->
+    <div class="rounded-xl bg-red-50 p-4 text-center ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-800">
+      <p class="text-xs font-medium uppercase tracking-wide text-red-600 dark:text-red-400">Custo total (gasto)</p>
+      <p class="mt-1 text-3xl font-extrabold text-red-700 dark:text-red-300">{formatBRL(breakdown.totalCostCentavos)}</p>
     </div>
     <div class="mt-3 grid grid-cols-2 gap-3">
       <div class="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-900/50">
