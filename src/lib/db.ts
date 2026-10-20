@@ -87,6 +87,10 @@ export async function saveHistory(rec: Omit<HistoryRecord, 'id' | 'createdAt'>):
   return id;
 }
 
+export async function updateHistory(rec: HistoryRecord): Promise<void> {
+  await db.history.put(rec);
+}
+
 export async function deleteHistory(id: string): Promise<void> {
   await db.history.delete(id);
 }

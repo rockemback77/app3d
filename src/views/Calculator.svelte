@@ -3,7 +3,8 @@
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import { settings } from '../lib/stores/settings.svelte';
-  import { listFilaments, saveHistory } from '../lib/db';
+  import { listFilaments, saveHistory, updateHistory } from '../lib/db';
+  import { editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
   import { filamentCostCentavos } from '../lib/engine/costs';
   import type { JobInputs } from '../lib/engine/types';
@@ -36,6 +37,45 @@
   let saveLabel = $state('');
   let savedMsg = $state('');
 
+  // edição de um cálculo salvo
+  let editingId = $state<string | null>(null);
+  let editingCreatedAt = 0;
+
+  const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+
+  // carrega um registro do histórico quando a tela de Histórico pede edição
+  $effect(() => {
+    const rec = editState.record;
+    if (!rec) return;
+    job.filaments = rec.job.filaments.length ? clone(rec.job.filaments) : [emptyFilament()];
+    job.laborMode = rec.job.laborMode;
+    job.laborHours = rec.job.laborHours;
+    job.laborFixedCentavos = rec.job.laborFixedCentavos;
+    job.misc = clone(rec.job.misc);
+    job.marginPercent = rec.job.marginPercent;
+    job.marketplaceId = rec.job.marketplaceId;
+    hh = Math.floor(rec.job.printHours);
+    mm = Math.round((rec.job.printHours - hh) * 60);
+    saveLabel = rec.label;
+    editingId = rec.id;
+    editingCreatedAt = rec.createdAt;
+    editState.record = null; // consumido
+  });
+
+  function resetCalc() {
+    job.filaments = [emptyFilament()];
+    job.laborMode = 'hourly';
+    job.laborHours = 0;
+    job.laborFixedCentavos = 0;
+    job.misc = [];
+    job.marginPercent = 50;
+    job.marketplaceId = null;
+    hh = 0;
+    mm = 0;
+    saveLabel = '';
+    editingId = null;
+  }
+
   let breakdown = $derived(computeBreakdown(settings, job));
 
   function addFilament() {
@@ -66,20 +106,46 @@
 
   async function salvarHistorico() {
     const label = saveLabel.trim() || new Date().toLocaleString('pt-BR');
-    await saveHistory({
-      label,
-      job: JSON.parse(JSON.stringify(job)),
-      configSnapshot: JSON.parse(JSON.stringify(settings)),
-      breakdown: JSON.parse(JSON.stringify(breakdown)),
-    });
-    saveLabel = '';
-    savedMsg = 'Cálculo salvo no histórico ✓';
+    if (editingId) {
+      await updateHistory({
+        id: editingId,
+        createdAt: editingCreatedAt,
+        label,
+        job: clone(job),
+        configSnapshot: clone(settings),
+        breakdown: clone(breakdown),
+      });
+      savedMsg = 'Cálculo atualizado ✓';
+      editingId = null;
+      saveLabel = '';
+    } else {
+      await saveHistory({
+        label,
+        job: clone(job),
+        configSnapshot: clone(settings),
+        breakdown: clone(breakdown),
+      });
+      savedMsg = 'Cálculo salvo no histórico ✓';
+      saveLabel = '';
+    }
     setTimeout(() => (savedMsg = ''), 3500);
   }
 </script>
 
 <div class="space-y-4 p-4 pb-40">
-  <h1 class="text-xl font-bold">Calcular impressão</h1>
+  <div class="flex items-center justify-between gap-2">
+    <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular impressão'}</h1>
+    {#if editingId}
+      <button class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300" onclick={resetCalc}>
+        Novo cálculo
+      </button>
+    {/if}
+  </div>
+  {#if editingId}
+    <div class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800">
+      Editando um cálculo salvo. Ao salvar, o registro no histórico será atualizado.
+    </div>
+  {/if}
 
   <!-- Filamentos -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
@@ -229,7 +295,7 @@
       </ul>
       <div class="mt-3 flex gap-2">
         <input class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 dark:border-slate-600 dark:bg-slate-900" placeholder="Nome da peça (opcional)" bind:value={saveLabel} />
-        <button class="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>Salvar</button>
+        <button class="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500" onclick={salvarHistorico}>{editingId ? 'Atualizar' : 'Salvar'}</button>
       </div>
       {#if savedMsg}<p class="mt-1 text-emerald-600">{savedMsg}</p>{/if}
     </details>

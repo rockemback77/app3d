@@ -1,7 +1,5 @@
 <script lang="ts">
-  export type Tab = 'calc' | 'profiles' | 'history' | 'settings';
-
-  let { current = $bindable('calc' as Tab) }: { current?: Tab } = $props();
+  import { ui, type Tab } from '../lib/stores/ui.svelte';
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'calc', label: 'Calcular', icon: '🧮' },
@@ -16,10 +14,10 @@
 >
   {#each tabs as t (t.id)}
     <button
-      class="flex flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors {current === t.id
+      class="flex flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors {ui.tab === t.id
         ? 'text-sky-500'
         : 'text-slate-500 dark:text-slate-400'}"
-      onclick={() => (current = t.id)}
+      onclick={() => (ui.tab = t.id)}
     >
       <span class="text-lg leading-none">{t.icon}</span>
       <span>{t.label}</span>

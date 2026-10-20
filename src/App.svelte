@@ -1,30 +1,29 @@
 <script lang="ts">
-  import TabBar, { type Tab } from './components/TabBar.svelte';
+  import TabBar from './components/TabBar.svelte';
   import InstallBanner from './components/InstallBanner.svelte';
   import UpdateToast from './components/UpdateToast.svelte';
   import Calculator from './views/Calculator.svelte';
   import Profiles from './views/Profiles.svelte';
   import History from './views/History.svelte';
   import Settings from './views/Settings.svelte';
-
-  let tab = $state<Tab>('calc');
+  import { ui } from './lib/stores/ui.svelte';
 </script>
 
 <div class="mx-auto min-h-screen max-w-md">
   <InstallBanner />
 
   <main>
-    {#if tab === 'calc'}
+    {#if ui.tab === 'calc'}
       <Calculator />
-    {:else if tab === 'profiles'}
+    {:else if ui.tab === 'profiles'}
       <Profiles />
-    {:else if tab === 'history'}
+    {:else if ui.tab === 'history'}
       <History />
-    {:else if tab === 'settings'}
+    {:else if ui.tab === 'settings'}
       <Settings />
     {/if}
   </main>
 
   <UpdateToast />
-  <TabBar bind:current={tab} />
+  <TabBar />
 </div>

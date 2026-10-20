@@ -2,6 +2,7 @@
   import { liveQuery } from 'dexie';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { formatBRL } from '../lib/money';
+  import { editHistory } from '../lib/stores/ui.svelte';
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
@@ -43,7 +44,10 @@
                 <li class="flex justify-between text-xs"><span>{rec.breakdown.marketplaceName} ({rec.breakdown.marketplaceRatePercent}%)</span><span></span></li>
               {/if}
             </ul>
-            <button class="mt-3 text-sm text-red-500" onclick={() => deleteHistory(rec.id)}>Excluir</button>
+            <div class="mt-3 flex gap-4">
+              <button class="text-sm font-medium text-sky-600" onclick={() => editHistory(rec)}>Editar</button>
+              <button class="text-sm text-red-500" onclick={() => deleteHistory(rec.id)}>Excluir</button>
+            </div>
           </div>
         {/if}
       </div>
