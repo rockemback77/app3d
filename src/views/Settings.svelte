@@ -8,6 +8,8 @@
     removeWearPart,
     addMarketplace,
     removeMarketplace,
+    addTag,
+    removeTag,
   } from '../lib/stores/settings.svelte';
   import { wearPerHourCentavos, monthlyWearCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
@@ -89,6 +91,11 @@
   });
 
   let showWatts = $state(false);
+  let novaTag = $state('');
+  function adicionarTag() {
+    addTag(novaTag);
+    novaTag = '';
+  }
   const printersInfo = [
     { nome: 'Bambu Lab A1 Mini', w: '80 W', kwh: '0,80 kWh' },
     { nome: 'Bambu Lab A1', w: '95 W', kwh: '0,95 kWh' },
@@ -332,6 +339,34 @@
       {/each}
       <button class="w-full rounded-lg border border-sky-300 bg-sky-50 py-2 text-sm font-semibold text-sky-600 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20" onclick={addMarketplace}>+ Adicionar marketplace</button>
     </div>
+  </section>
+
+  <!-- Tags -->
+  <section class="glass p-4">
+    <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Tags das peças</h2>
+    <p class="mb-3 text-xs text-slate-500">Opções pré-definidas que aparecem ao salvar uma peça.</p>
+    <div class="mb-3 flex gap-2">
+      <input
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900"
+        placeholder="Nova tag"
+        maxlength="30"
+        bind:value={novaTag}
+        onkeydown={(e) => e.key === 'Enter' && adicionarTag()}
+      />
+      <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarTag}>Adicionar</button>
+    </div>
+    {#if settings.tags.length}
+      <div class="flex flex-wrap gap-2">
+        {#each settings.tags as tag (tag)}
+          <span class="flex items-center gap-1.5 rounded-full bg-sky-100 py-1 pl-3 pr-1.5 text-xs font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+            {tag}
+            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-200 text-sky-700 hover:bg-sky-300 dark:bg-sky-700 dark:text-sky-200" aria-label="Remover {tag}" onclick={() => removeTag(tag)}>×</button>
+          </span>
+        {/each}
+      </div>
+    {:else}
+      <p class="text-xs text-slate-400">Nenhuma tag cadastrada.</p>
+    {/if}
   </section>
 
   <!-- Backup -->

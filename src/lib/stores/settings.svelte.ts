@@ -18,6 +18,7 @@ export function defaultConfig(): AppConfig {
       { id: uid(), name: 'Mercado Livre Premium', ratePercent: 17 },
       { id: uid(), name: 'Shopee', ratePercent: 20 },
     ],
+    tags: ['Decoração', 'Utilidade', 'Presente', 'Cliente', 'Protótipo'],
   };
 }
 
@@ -32,6 +33,7 @@ function load(): AppConfig {
       ...parsed,
       wearParts: parsed.wearParts ?? base.wearParts,
       marketplaces: parsed.marketplaces ?? base.marketplaces,
+      tags: parsed.tags ?? base.tags,
     };
   } catch {
     return defaultConfig();
@@ -88,5 +90,20 @@ export function addMarketplace(): void {
 export function removeMarketplace(id: string): void {
   const i = settings.marketplaces.findIndex((m: MarketplacePreset) => m.id === id);
   if (i >= 0) settings.marketplaces.splice(i, 1);
+  persistSettings();
+}
+
+export function addTag(name: string): void {
+  const t = name.trim();
+  if (!t) return;
+  if (!settings.tags.some((x: string) => x.toLowerCase() === t.toLowerCase())) {
+    settings.tags.push(t);
+    persistSettings();
+  }
+}
+
+export function removeTag(name: string): void {
+  const i = settings.tags.indexOf(name);
+  if (i >= 0) settings.tags.splice(i, 1);
   persistSettings();
 }

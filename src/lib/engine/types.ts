@@ -20,6 +20,7 @@ export interface AppConfig {
   hoursPerMonth: number; // horas de impressão por mês (p/ ratear desgaste)
   laborRateCentavos: number; // R$/hora de mão de obra padrão
   marketplaces: MarketplacePreset[];
+  tags: string[]; // tags pré-definidas para as peças
 }
 
 export interface JobFilament {

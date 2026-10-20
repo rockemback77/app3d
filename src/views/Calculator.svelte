@@ -151,6 +151,15 @@
       .slice(0, 10);
   }
 
+  let tagsAtivas = $derived(new Set(parseTags(saveTags).map((t) => t.toLowerCase())));
+  function toggleTag(tag: string) {
+    const cur = parseTags(saveTags);
+    const i = cur.findIndex((t) => t.toLowerCase() === tag.toLowerCase());
+    if (i >= 0) cur.splice(i, 1);
+    else cur.push(tag);
+    saveTags = cur.join(', ');
+  }
+
   async function salvarHistorico() {
     const label = saveLabel.trim();
     if (!label) {
@@ -217,15 +226,28 @@
         bind:value={saveLabel}
       />
     </label>
-    <label class="mt-3 block">
+    <div class="mt-3">
       <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Tags</span>
+      {#if settings.tags.length}
+        <div class="mb-2 flex flex-wrap gap-2">
+          {#each settings.tags as tag (tag)}
+            <button
+              type="button"
+              class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagsAtivas.has(tag.toLowerCase())
+                ? 'bg-sky-500 text-white'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+              onclick={() => toggleTag(tag)}
+            >{tag}</button>
+          {/each}
+        </div>
+      {/if}
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-        placeholder="Ex: decoração, cliente X (separe por vírgula)"
+        placeholder="Ou digite tags livres (separe por vírgula)"
         maxlength="120"
         bind:value={saveTags}
       />
-    </label>
+    </div>
   </section>
 
   <!-- Filamentos -->
