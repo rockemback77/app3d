@@ -6,6 +6,14 @@
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
+  let query = $state('');
+
+  let filtered = $derived.by(() => {
+    const list = $history ?? [];
+    const q = query.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((r) => r.label.toLowerCase().includes(q));
+  });
 
   function toggle(id: string) {
     open = open === id ? null : id;
@@ -19,7 +27,27 @@
   <h1 class="text-xl font-bold">Peças cadastradas</h1>
 
   {#if $history && $history.length > 0}
-    {#each $history as rec (rec.id)}
+    <div class="relative">
+      <input
+        class="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+        type="search"
+        placeholder="Buscar peça pelo nome"
+        maxlength="60"
+        bind:value={query}
+      />
+      <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+      {#if query}
+        <button class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" onclick={() => (query = '')}>✕</button>
+      {/if}
+    </div>
+
+    {#if filtered.length === 0}
+      <p class="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-sm dark:bg-slate-800">
+        Nenhuma peça encontrada para "<span class="font-medium">{query}</span>".
+      </p>
+    {/if}
+
+    {#each filtered as rec (rec.id)}
       <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
         <button class="flex w-full items-center justify-between gap-3 text-left" onclick={() => toggle(rec.id)}>
           <div class="min-w-0">
