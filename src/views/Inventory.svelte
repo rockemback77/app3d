@@ -80,7 +80,7 @@
           <datalist id="custos-cadastrados">
             {#each sugestoes as nome (nome)}<option value={nome}></option>{/each}
           </datalist>
-          <span class="mt-1 block text-xs text-slate-400">Sugestões vêm dos filamentos e custos cadastrados. Pode digitar livremente.</span>
+          <span class="mt-1 block text-xs text-slate-400">Sugestões vêm dos filamentos e custos cadastrados. Você também pode digitar livremente um novo item.</span>
         </label>
         <div class="grid grid-cols-2 gap-3">
           <label class="block">
