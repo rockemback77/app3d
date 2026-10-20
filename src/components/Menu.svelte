@@ -1,16 +1,28 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
+  import {
+    Calculator,
+    Spool,
+    Receipt,
+    ArrowLeftRight,
+    Puzzle,
+    Package,
+    Warehouse,
+    Settings,
+    Printer,
+    type Icon,
+  } from 'lucide-svelte';
   import { ui, type Tab } from '../lib/stores/ui.svelte';
 
-  const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'calc', label: 'Calcular custo', icon: '🖨️' },
-    { id: 'profiles', label: 'Filamentos', icon: '🧵' },
-    { id: 'costs', label: 'Custos', icon: '🧾' },
-    { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
-    { id: 'history', label: 'Peças cadastradas', icon: '🧩' },
-    { id: 'stock', label: 'Estoque', icon: '📦' },
-    { id: 'inventory', label: 'Inventário', icon: '🧰' },
-    { id: 'settings', label: 'Configurações', icon: '⚙️' },
+  const tabs: { id: Tab; label: string; icon: typeof Icon }[] = [
+    { id: 'calc', label: 'Calcular custo', icon: Calculator },
+    { id: 'profiles', label: 'Filamentos', icon: Spool },
+    { id: 'costs', label: 'Custos', icon: Receipt },
+    { id: 'sales', label: 'Receita × Despesa', icon: ArrowLeftRight },
+    { id: 'history', label: 'Peças cadastradas', icon: Puzzle },
+    { id: 'stock', label: 'Estoque', icon: Package },
+    { id: 'inventory', label: 'Inventário', icon: Warehouse },
+    { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
   let titulo = $derived(tabs.find((t) => t.id === ui.tab)?.label ?? '');
@@ -23,7 +35,7 @@
 
 {#snippet brand()}
   <div class="mb-5 flex items-center gap-2 px-1">
-    <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 text-xl shadow-md shadow-violet-500/30">🖨️</span>
+    <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 text-white shadow-md shadow-violet-500/30"><Printer size={20} /></span>
     <span class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text font-extrabold text-transparent">Custo 3D</span>
   </div>
 {/snippet}
@@ -31,13 +43,14 @@
 {#snippet navList()}
   <div class="space-y-1">
     {#each tabs as t (t.id)}
+      {@const Icon = t.icon}
       <button
         class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors {ui.tab === t.id
           ? 'bg-gradient-to-r from-violet-100 to-sky-100 text-sky-700 dark:from-violet-500/20 dark:to-sky-500/20 dark:text-sky-300'
           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}"
         onclick={() => go(t.id)}
       >
-        <span class="text-xl">{t.icon}</span>
+        <Icon size={20} />
         <span>{t.label}</span>
       </button>
     {/each}
