@@ -12,9 +12,42 @@
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
+  import { auth, signIn, signUp, signOut } from '../lib/stores/auth.svelte';
+  import { syncState, push, pull } from '../lib/sync.svelte';
 
   let importMsg = $state('');
   let fileInput: HTMLInputElement;
+
+  // ---- conta / nuvem ----
+  let email = $state('');
+  let senha = $state('');
+  let modo = $state<'login' | 'cadastro'>('login');
+  let authMsg = $state('');
+  let busy = $state(false);
+
+  async function entrar() {
+    authMsg = '';
+    busy = true;
+    const err = modo === 'login' ? await signIn(email, senha) : await signUp(email, senha);
+    busy = false;
+    if (err) {
+      authMsg = traduzErro(err);
+    } else {
+      senha = '';
+      if (modo === 'cadastro') authMsg = 'Conta criada. Se pedir confirmação por email, verifique sua caixa.';
+    }
+  }
+
+  async function sair() {
+    await signOut();
+  }
+
+  function traduzErro(msg: string): string {
+    if (/invalid login credentials/i.test(msg)) return 'Email ou senha incorretos.';
+    if (/already registered/i.test(msg)) return 'Email já cadastrado. Faça login.';
+    if (/password should be at least/i.test(msg)) return 'Senha muito curta (mín. 6 caracteres).';
+    return msg;
+  }
 
   let wearHour = $derived(wearPerHourCentavos(settings));
 
@@ -34,6 +67,62 @@
 
 <div class="space-y-6 p-4 pb-8">
   <h1 class="text-xl font-bold">Configurações</h1>
+
+  <!-- Conta / nuvem -->
+  <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
+    <h2 class="mb-1 font-semibold text-sky-600 dark:text-sky-400">Conta (nuvem)</h2>
+    <p class="mb-3 text-xs text-slate-500">Entre para salvar seus dados na nuvem e acessá-los de outros aparelhos.</p>
+
+    {#if auth.user}
+      <p class="mb-3 text-sm">
+        Logado como <span class="font-medium">{auth.user.email}</span>
+      </p>
+      <div class="mb-3 flex gap-2">
+        <button class="flex-1 rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200" onclick={() => pull()}>Baixar da nuvem</button>
+        <button class="flex-1 rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200" onclick={() => push()}>Enviar para nuvem</button>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-slate-500">
+          {#if syncState.status === 'syncing'}Sincronizando…{:else if syncState.status === 'synced'}Sincronizado ✓{:else if syncState.status === 'error'}Erro: {syncState.error}{:else}—{/if}
+        </span>
+        <button class="text-sm font-medium text-red-500" onclick={sair}>Sair</button>
+      </div>
+    {:else}
+      <div class="space-y-2">
+        <input
+          class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          bind:value={email}
+        />
+        <input
+          class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900"
+          type="password"
+          placeholder="Senha"
+          autocomplete="current-password"
+          bind:value={senha}
+        />
+        <button
+          class="w-full rounded-lg bg-sky-500 py-2 text-sm font-semibold text-white hover:bg-sky-400 disabled:opacity-50"
+          disabled={busy || !email || !senha}
+          onclick={entrar}
+        >
+          {busy ? 'Aguarde…' : modo === 'login' ? 'Entrar' : 'Criar conta'}
+        </button>
+        <button
+          class="w-full text-center text-xs text-sky-600"
+          onclick={() => {
+            modo = modo === 'login' ? 'cadastro' : 'login';
+            authMsg = '';
+          }}
+        >
+          {modo === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
+        </button>
+      </div>
+    {/if}
+    {#if authMsg}<p class="mt-2 text-sm text-amber-600">{authMsg}</p>{/if}
+  </section>
 
   <!-- Energia / Impressora -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
