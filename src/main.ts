@@ -4,12 +4,13 @@ import App from './App.svelte';
 import { initPWA } from './lib/stores/pwa.svelte';
 import { requestPersistentStorage } from './lib/backup';
 import { startSettingsPersistence } from './lib/stores/settings.svelte';
-import { seedCostItemsIfEmpty } from './lib/db';
+import { seedCostItemsIfEmpty, seedFilamentsIfEmpty } from './lib/db';
 
 initPWA();
 startSettingsPersistence();
 void requestPersistentStorage();
 void seedCostItemsIfEmpty();
+void seedFilamentsIfEmpty();
 
 const app = mount(App, {
   target: document.getElementById('app')!,

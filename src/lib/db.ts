@@ -103,6 +103,28 @@ export async function deleteFilament(id: string): Promise<void> {
   await db.filaments.delete(id);
 }
 
+/** Semeia 10 filamentos comuns (PLA, cores mais usadas) na primeira execução. */
+export async function seedFilamentsIfEmpty(): Promise<void> {
+  const count = await db.filaments.count();
+  if (count > 0) return;
+  const defaults: Array<Omit<FilamentProfile, 'id' | 'createdAt'>> = [
+    { name: 'PLA Preto', type: 'PLA', color: '#1a1a1a', colorLabel: 'Preto', brand: 'Voolt', pricePerKgCentavos: 11000 },
+    { name: 'PLA Branco', type: 'PLA', color: '#f5f5f5', colorLabel: 'Branco', brand: 'Voolt', pricePerKgCentavos: 11000 },
+    { name: 'PLA Cinza', type: 'PLA', color: '#808080', colorLabel: 'Cinza', brand: '3D Lab', pricePerKgCentavos: 10500 },
+    { name: 'PLA Vermelho', type: 'PLA', color: '#e11d48', colorLabel: 'Vermelho', brand: '3D Lab', pricePerKgCentavos: 10500 },
+    { name: 'PLA Azul', type: 'PLA', color: '#2563eb', colorLabel: 'Azul', brand: '3DFila', pricePerKgCentavos: 10900 },
+    { name: 'PLA Verde', type: 'PLA', color: '#16a34a', colorLabel: 'Verde', brand: '3DFila', pricePerKgCentavos: 10900 },
+    { name: 'PLA Amarelo', type: 'PLA', color: '#facc15', colorLabel: 'Amarelo', brand: 'Voolt', pricePerKgCentavos: 10900 },
+    { name: 'PLA Laranja', type: 'PLA', color: '#f97316', colorLabel: 'Laranja', brand: 'Voolt', pricePerKgCentavos: 10900 },
+    { name: 'PLA Roxo', type: 'PLA', color: '#7c3aed', colorLabel: 'Roxo', brand: '3D Lab', pricePerKgCentavos: 11200 },
+    { name: 'PLA Natural', type: 'PLA', color: '#e5e7eb', colorLabel: 'Natural', brand: '3DFila', pricePerKgCentavos: 9900 },
+  ];
+  const now = Date.now();
+  await db.filaments.bulkPut(
+    defaults.map((f, i) => ({ ...f, id: uid(), createdAt: now + i }))
+  );
+}
+
 // ---- Outros custos (embalagem, frete, etc.) ----
 export async function listCostItems(): Promise<CostItem[]> {
   return db.costItems.orderBy('createdAt').reverse().toArray();
