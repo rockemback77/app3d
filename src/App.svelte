@@ -8,28 +8,38 @@
   import Sales from './views/Sales.svelte';
   import History from './views/History.svelte';
   import Settings from './views/Settings.svelte';
+  import Login from './views/Login.svelte';
   import { ui } from './lib/stores/ui.svelte';
+  import { auth } from './lib/stores/auth.svelte';
 </script>
 
-<div class="mx-auto min-h-screen max-w-md">
-  <InstallBanner />
+{#if auth.loading}
+  <div class="flex min-h-screen items-center justify-center text-slate-400">
+    <span class="text-3xl">🧮</span>
+  </div>
+{:else if !auth.user}
+  <Login />
+{:else}
+  <div class="mx-auto min-h-screen max-w-md">
+    <InstallBanner />
 
-  <main>
-    {#if ui.tab === 'calc'}
-      <Calculator />
-    {:else if ui.tab === 'profiles'}
-      <Profiles />
-    {:else if ui.tab === 'costs'}
-      <CostItems />
-    {:else if ui.tab === 'sales'}
-      <Sales />
-    {:else if ui.tab === 'history'}
-      <History />
-    {:else if ui.tab === 'settings'}
-      <Settings />
-    {/if}
-  </main>
+    <main>
+      {#if ui.tab === 'calc'}
+        <Calculator />
+      {:else if ui.tab === 'profiles'}
+        <Profiles />
+      {:else if ui.tab === 'costs'}
+        <CostItems />
+      {:else if ui.tab === 'sales'}
+        <Sales />
+      {:else if ui.tab === 'history'}
+        <History />
+      {:else if ui.tab === 'settings'}
+        <Settings />
+      {/if}
+    </main>
 
-  <UpdateToast />
-  <TabBar />
-</div>
+    <UpdateToast />
+    <TabBar />
+  </div>
+{/if}
