@@ -156,7 +156,7 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <h1 class="text-xl font-bold">Vendas</h1>
+  <h1 class="text-xl font-bold">Receita × Despesas</h1>
 
   <!-- Formulário -->
   <section class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800">
