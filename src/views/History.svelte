@@ -16,7 +16,7 @@
 </script>
 
 <div class="space-y-3 p-4 pb-8">
-  <h1 class="text-xl font-bold">Histórico</h1>
+  <h1 class="text-xl font-bold">Peças cadastradas</h1>
 
   {#if $history && $history.length > 0}
     {#each $history as rec (rec.id)}

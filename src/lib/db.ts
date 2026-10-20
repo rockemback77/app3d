@@ -28,10 +28,24 @@ export interface HistoryRecord {
   breakdown: CostBreakdown;
 }
 
+export type TxType = 'receita' | 'despesa';
+
+export interface Transaction {
+  id: string;
+  createdAt: number;
+  type: TxType;
+  date: string; // 'YYYY-MM-DD'
+  label: string; // o que foi (peça / custo / filamento)
+  refId?: string; // id do item cadastrado de origem
+  quantity: number; // quantidade vendida/comprada
+  unitCentavos: number; // valor unitário (snapshot, editável)
+}
+
 const db = new Dexie('calculadora-custo-3d') as Dexie & {
   filaments: EntityTable<FilamentProfile, 'id'>;
   history: EntityTable<HistoryRecord, 'id'>;
   costItems: EntityTable<CostItem, 'id'>;
+  transactions: EntityTable<Transaction, 'id'>;
 };
 
 // v1: perfis de filamento. v2: histórico. v3: outros custos.
@@ -46,6 +60,12 @@ db.version(3).stores({
   filaments: 'id, createdAt, name',
   history: 'id, createdAt',
   costItems: 'id, createdAt, name',
+});
+db.version(4).stores({
+  filaments: 'id, createdAt, name',
+  history: 'id, createdAt',
+  costItems: 'id, createdAt, name',
+  transactions: 'id, createdAt, date, type',
 });
 
 export { db };
@@ -140,4 +160,31 @@ export async function updateHistory(rec: HistoryRecord): Promise<void> {
 
 export async function deleteHistory(id: string): Promise<void> {
   await db.history.delete(id);
+}
+
+// ---- Vendas (receitas e despesas) ----
+export async function listTransactions(): Promise<Transaction[]> {
+  return db.transactions.orderBy('date').reverse().toArray();
+}
+
+export async function saveTransaction(
+  t: Omit<Transaction, 'id' | 'createdAt'> & { id?: string }
+): Promise<string> {
+  const id = t.id ?? uid();
+  const existing = t.id ? await db.transactions.get(t.id) : undefined;
+  await db.transactions.put({
+    id,
+    type: t.type,
+    date: t.date,
+    label: t.label,
+    refId: t.refId,
+    quantity: t.quantity,
+    unitCentavos: t.unitCentavos,
+    createdAt: existing?.createdAt ?? Date.now(),
+  });
+  return id;
+}
+
+export async function deleteTransaction(id: string): Promise<void> {
+  await db.transactions.delete(id);
 }
