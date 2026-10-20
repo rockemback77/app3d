@@ -278,13 +278,14 @@
   <section class="glass p-4">
     <div class="mb-3 flex items-center justify-between">
       <h2 class="font-semibold text-sky-600 dark:text-sky-400">Receita × Despesa</h2>
-      <label class="flex items-center gap-2 text-xs text-slate-500">
-        Meses
+      <label class="flex items-center gap-1.5 text-xs text-slate-500">
+        Mostrar últimos
         <select class="rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-600 dark:bg-slate-900" bind:value={mesesGrafico}>
           {#each Array.from({ length: 12 }, (_, i) => i + 1) as n (n)}
             <option value={n}>{n}</option>
           {/each}
         </select>
+        meses
       </label>
     </div>
 
