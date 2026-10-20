@@ -43,7 +43,7 @@ async function applySnapshot(data: any): Promise<void> {
   applying = true;
   try {
     if (data.config) replaceSettings(data.config);
-    await db.transaction('rw', db.filaments, db.history, db.costItems, db.transactions, db.stock, db.inventory, async () => {
+    await db.transaction('rw', [db.filaments, db.history, db.costItems, db.transactions, db.stock, db.inventory], async () => {
       await Promise.all([
         db.filaments.clear(),
         db.history.clear(),
