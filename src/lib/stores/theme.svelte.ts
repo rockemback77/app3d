@@ -1,45 +1,12 @@
-export type Theme = 'light' | 'dark' | 'system';
+// App fixado em tema escuro (decisao de design). Mantido como modulo
+// simples caso um seletor de tema volte no futuro.
 
-const KEY = 'custo3d.theme';
-
-function load(): Theme {
-  try {
-    const v = localStorage.getItem(KEY);
-    if (v === 'light' || v === 'dark' || v === 'system') return v;
-  } catch {
-    /* ignore */
-  }
-  return 'system';
-}
-
-export const theme = $state<{ value: Theme }>({ value: load() });
-
-function systemPrefersDark(): boolean {
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-/** Aplica a classe .dark no <html> conforme a preferência atual. */
+/** Garante a classe .dark no <html>. */
 export function applyTheme(): void {
-  const dark = theme.value === 'dark' || (theme.value === 'system' && systemPrefersDark());
-  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.classList.add('dark');
 }
 
-export function setTheme(t: Theme): void {
-  theme.value = t;
-  try {
-    localStorage.setItem(KEY, t);
-  } catch {
-    /* ignore */
-  }
-  applyTheme();
-}
-
-/** Inicializa o tema e acompanha mudanças do sistema quando em modo 'system'. */
+/** Inicializa o tema (sempre escuro). */
 export function initTheme(): void {
   applyTheme();
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (theme.value === 'system') applyTheme();
-    });
-  }
 }
