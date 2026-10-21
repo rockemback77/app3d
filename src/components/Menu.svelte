@@ -1,7 +1,6 @@
 <script lang="ts">
   import { fly, fade } from 'svelte/transition';
   import {
-    Calculator,
     Spool,
     Receipt,
     ArrowLeftRight,
@@ -15,17 +14,18 @@
   import { ui, type Tab } from '../lib/stores/ui.svelte';
 
   const tabs: { id: Tab; label: string; icon: typeof Icon }[] = [
-    { id: 'calc', label: 'Calcular custo', icon: Calculator },
+    { id: 'history', label: 'Projetos', icon: Puzzle },
     { id: 'profiles', label: 'Filamentos', icon: Spool },
     { id: 'costs', label: 'Custos', icon: Receipt },
-    { id: 'sales', label: 'Receita × Despesa', icon: ArrowLeftRight },
-    { id: 'history', label: 'Projetos', icon: Puzzle },
-    { id: 'stock', label: 'Estoque de peças', icon: Package },
+    { id: 'stock', label: 'Estoque', icon: Package },
     { id: 'inventory', label: 'Inventário', icon: Warehouse },
+    { id: 'sales', label: 'Receita × Despesa', icon: ArrowLeftRight },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
-  let titulo = $derived(tabs.find((t) => t.id === ui.tab)?.label ?? '');
+  let titulo = $derived(
+    tabs.find((t) => t.id === ui.tab)?.label ?? (ui.tab === 'calc' ? 'Calcular custo' : '')
+  );
 
   function go(t: Tab) {
     ui.tab = t;

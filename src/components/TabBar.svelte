@@ -2,12 +2,12 @@
   import { ui, type Tab } from '../lib/stores/ui.svelte';
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'calc', label: 'Calcular', icon: '🖨️' },
+    { id: 'history', label: 'Projetos', icon: '🧩' },
     { id: 'profiles', label: 'Filamentos', icon: '🧵' },
     { id: 'costs', label: 'Custos', icon: '🧾' },
+    { id: 'stock', label: 'Estoque', icon: '📦' },
+    { id: 'inventory', label: 'Inventário', icon: '🏬' },
     { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
-    { id: 'history', label: 'Projetos', icon: '🧩' },
-    { id: 'stock', label: 'Estoque de peças', icon: '📦' },
     { id: 'settings', label: 'Configurações', icon: '⚙️' },
   ];
 </script>
