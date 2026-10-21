@@ -17,7 +17,7 @@
   <div class="w-full max-w-sm">
     <div class="mb-8 text-center">
       <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-500 to-sky-500 text-4xl shadow-lg shadow-violet-500/30">🖨️</div>
-      <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">Calculadora de Custo 3D</h1>
+      <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">App 3D</h1>
     </div>
 
     <div class="space-y-3 rounded-3xl bg-white/90 p-5 text-center shadow-xl shadow-slate-200/60 backdrop-blur dark:bg-slate-800/90 dark:shadow-black/30">

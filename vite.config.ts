@@ -13,8 +13,8 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['icon.svg', 'favicon.svg'],
       manifest: {
-        name: 'Calculadora de Custo 3D',
-        short_name: 'Custo 3D',
+        name: 'App 3D',
+        short_name: 'App 3D',
         description:
           'Calcule o custo e o preço de venda das suas impressões 3D. Funciona offline.',
         lang: 'pt-BR',
