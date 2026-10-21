@@ -1,11 +1,23 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Package } from 'lucide-svelte';
+  import { Package, Search } from 'lucide-svelte';
   import { listHistory, listStock, setStock } from '../lib/db';
+  import { settings, tagColor } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
 
   const pecas = liveQuery(() => listHistory());
   const stock = liveQuery(() => listStock());
+
+  let query = $state('');
+  let tagFiltro = $state<string | null>(null);
+  let filtered = $derived(
+    ($pecas ?? []).filter((r) => {
+      const q = query.trim().toLowerCase();
+      const okText = !q || r.label.toLowerCase().includes(q);
+      const okTag = !tagFiltro || (r.tags ?? []).some((t) => t.toLowerCase() === tagFiltro!.toLowerCase());
+      return okText && okTag;
+    })
+  );
 
   // lucro unitário de uma peça = preço com margem - custo total
   function lucroUnit(rec: { breakdown: { priceWithMarginCentavos: number; totalCostCentavos: number } }) {
@@ -69,21 +81,54 @@
   </div>
 
   {#if $pecas && $pecas.length > 0}
+    <!-- Busca + filtro por tag -->
+    <div class="relative">
+      <Search size={16} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <input
+        class="w-full rounded-lg border border-slate-600 bg-slate-800/60 py-2 pl-9 pr-3 text-sm text-slate-100 outline-none focus:border-sky-500"
+        type="search"
+        placeholder="Buscar projeto…"
+        bind:value={query}
+      />
+    </div>
+    {#if settings.tags?.length}
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="rounded-full px-3 py-1 text-xs font-medium {tagFiltro === null ? 'bg-sky-500 text-white' : 'bg-slate-700 text-slate-300'}"
+          onclick={() => (tagFiltro = null)}>Todas</button>
+        {#each settings.tags ?? [] as tag (tag)}
+          <button
+            class="rounded-full px-3 py-1 text-xs font-medium"
+            style={tagFiltro === tag ? `background:${tagColor(tag)};color:#fff` : `background:${tagColor(tag)}22;color:${tagColor(tag)}`}
+            onclick={() => (tagFiltro = tagFiltro === tag ? null : tag)}>{tag}</button>
+        {/each}
+      </div>
+    {/if}
+
+    {#if filtered.length === 0}
+      <p class="rounded-2xl border border-white/10 bg-slate-800/40 p-6 text-center text-sm text-slate-500">
+        Nenhum projeto encontrado{query ? ` para "${query}"` : ''}{tagFiltro ? ` com a tag "${tagFiltro}"` : ''}.
+      </p>
+    {/if}
+
     <div class="space-y-2">
-      {#each $pecas as rec (rec.id)}
+      {#each filtered as rec (rec.id)}
         {@const q = qtdDe.get(rec.id) ?? 0}
-        <div class="glass p-3">
+        <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-3">
           <div class="flex items-center gap-3">
             <div class="min-w-0 flex-1">
               <p class="truncate font-medium">{rec.label}</p>
-              <p class="text-xs text-slate-500">
-                Lucro unit.: <span class="font-medium text-emerald-600 dark:text-emerald-400">{formatBRL(lucroUnit(rec))}</span>
-                · Venda {formatBRL(rec.breakdown.finalPriceCentavos)}
-              </p>
+              {#if rec.tags && rec.tags.length}
+                <div class="mt-1 flex flex-wrap gap-1">
+                  {#each rec.tags as tag (tag)}
+                    <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
+                  {/each}
+                </div>
+              {/if}
             </div>
             <div class="flex shrink-0 items-center gap-2">
               <button
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-lg font-bold text-slate-200 disabled:opacity-40"
                 disabled={q <= 0}
                 onclick={() => alterar(rec.id, -1)}>−</button>
               <span class="w-8 text-center text-lg font-bold">{q}</span>
@@ -92,17 +137,33 @@
                 onclick={() => alterar(rec.id, 1)}>+</button>
             </div>
           </div>
+
+          <div class="mt-2 grid grid-cols-3 gap-2 border-t border-slate-700 pt-2 text-center text-xs">
+            <div>
+              <p class="text-slate-500">Custo un.</p>
+              <p class="font-semibold text-red-400">{formatBRL(rec.breakdown.totalCostCentavos)}</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Venda un.</p>
+              <p class="font-semibold text-slate-200">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Lucro un.</p>
+              <p class="font-semibold text-emerald-400">{formatBRL(lucroUnit(rec))}</p>
+            </div>
+          </div>
+
           {#if q > 0}
             <p class="mt-2 text-right text-xs text-slate-500">
-              {q} × {formatBRL(lucroUnit(rec))} = <span class="font-semibold text-emerald-600 dark:text-emerald-400">{formatBRL(q * lucroUnit(rec))}</span> de lucro
+              {q} × {formatBRL(lucroUnit(rec))} = <span class="font-semibold text-emerald-400">{formatBRL(q * lucroUnit(rec))}</span> de lucro
             </p>
           {/if}
         </div>
       {/each}
     </div>
   {:else}
-    <p class="glass p-6 text-center text-sm text-slate-500">
-      Nenhuma peça cadastrada ainda. Salve peças na aba <span class="font-semibold">Calcular</span> para controlar o estoque.
+    <p class="rounded-2xl border border-white/10 bg-slate-800/40 p-6 text-center text-sm text-slate-500">
+      Nenhuma peça cadastrada ainda. Cadastre um projeto para controlar o estoque.
     </p>
   {/if}
 </div>
