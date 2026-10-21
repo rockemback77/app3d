@@ -116,9 +116,62 @@
   $effect(() => { if (okL && curL !== confL) okL = false; });
   $effect(() => { if (okP && curP !== confP) okP = false; });
 
-  function toggleF() { okF = !okF; if (okF) confF = sigFilaments(); }
-  function toggleL() { okL = !okL; if (okL) confL = sigLabor(); }
-  function toggleP() { okP = !okP; if (okP) confP = sigPrice(); }
+  let errF = $state('');
+  let errL = $state('');
+  let errP = $state('');
+
+  function validarFilamentos(): string {
+    for (let i = 0; i < job.filaments.length; i++) {
+      const f = job.filaments[i];
+      const u = fui[i];
+      if (u.mode === 'cadastrado') {
+        if (!u.brand) return `Filamento #${i + 1}: selecione a marca.`;
+        if (!f.profileId) return `Filamento #${i + 1}: selecione o filamento.`;
+      } else {
+        if (!f.name.trim()) return `Filamento #${i + 1}: informe o nome.`;
+        if (!(f.pricePerKgCentavos > 0)) return `Filamento #${i + 1}: informe o preço/kg.`;
+      }
+      if (!(f.grams > 0)) return `Filamento #${i + 1}: informe os gramas.`;
+    }
+    return '';
+  }
+  function validarTempo(): string {
+    if (!(job.printHours > 0)) return 'Informe o tempo de impressão.';
+    if (job.laborMode === 'fixed' && !(job.laborFixedCentavos > 0)) return 'Informe o valor fixo de mão de obra.';
+    return '';
+  }
+  function validarPreco(): string {
+    if (job.priceMode === 'fixed' && !(job.fixedPriceCentavos > 0)) return 'Informe o valor de venda.';
+    return '';
+  }
+
+  function toggleF() {
+    if (!okF) {
+      const e = validarFilamentos();
+      if (e) { errF = e; return; }
+    }
+    errF = '';
+    okF = !okF;
+    if (okF) confF = sigFilaments();
+  }
+  function toggleL() {
+    if (!okL) {
+      const e = validarTempo();
+      if (e) { errL = e; return; }
+    }
+    errL = '';
+    okL = !okL;
+    if (okL) confL = sigLabor();
+  }
+  function toggleP() {
+    if (!okP) {
+      const e = validarPreco();
+      if (e) { errP = e; return; }
+    }
+    errP = '';
+    okP = !okP;
+    if (okP) confP = sigPrice();
+  }
 
   // ---- resultado (só após clicar Calcular) ----
   let result = $state<Breakdown | null>(null);
@@ -404,6 +457,7 @@
       {@render head(Spool, 'from-violet-500 to-purple-500', 'Filamentos')}
       {@render okToggle(okF, toggleF)}
     </div>
+    {#if errF}<p class="mb-2 text-xs font-medium text-amber-400">{errF}</p>{/if}
     <div class="mb-3">
       <span class="mb-1 block text-xs text-slate-500">Quantidade de filamentos</span>
       <div class="flex gap-2">
@@ -503,6 +557,7 @@
       {@render head(Clock, 'from-amber-500 to-orange-500', 'Tempo & mão de obra')}
       {@render okToggle(okL, toggleL)}
     </div>
+    {#if errL}<p class="mb-2 text-xs font-medium text-amber-400">{errL}</p>{/if}
     <div class="mb-3">
       <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tempo de impressão</span>
       <div class="grid grid-cols-2 gap-2">
@@ -600,6 +655,7 @@
       {@render head(DollarSign, 'from-emerald-500 to-teal-500', 'Preço de venda')}
       {@render okToggle(okP, toggleP)}
     </div>
+    {#if errP}<p class="mb-2 text-xs font-medium text-amber-400">{errP}</p>{/if}
     <div class="mb-3 flex gap-2">
       <button
         class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.priceMode === 'margin' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
