@@ -40,6 +40,14 @@ export async function signIn(email: string, password: string): Promise<string | 
   return error ? error.message : null;
 }
 
+export async function signInWithGoogle(): Promise<string | null> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  return error ? error.message : null;
+}
+
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
