@@ -1,14 +1,17 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
+  import { Check } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import { settings } from '../lib/stores/settings.svelte';
-  import { listFilaments, listCostItems, saveHistory, updateHistory } from '../lib/db';
+  import { listFilaments, listCostItems, saveHistory, updateHistory, historyLabelExists } from '../lib/db';
   import { editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
   import { filamentCostCentavos } from '../lib/engine/costs';
   import type { JobInputs } from '../lib/engine/types';
   import { formatBRL } from '../lib/money';
+
+  type Breakdown = ReturnType<typeof computeBreakdown>;
 
   const filaments = liveQuery(() => listFilaments());
   const costItems = liveQuery(() => listCostItems());
@@ -47,6 +50,64 @@
   let saveLabel = $state('');
   let saveTags = $state('');
   let savedMsg = $state('');
+  let calcMsg = $state('');
+
+  // ---- confirmação por seção ----
+  // assinaturas de cada seção; ao mudar, a confirmação cai
+  function sigFilaments() { return JSON.stringify(job.filaments); }
+  function sigLabor() { return JSON.stringify([hh, mm, job.laborMode, laborHh, laborMm, job.laborFixedCentavos]); }
+  function sigMisc() { return JSON.stringify(job.misc); }
+  function sigPrice() { return JSON.stringify([job.priceMode, job.marginPercent, job.fixedPriceCentavos, job.marketplaceId]); }
+  function sigAll() { return sigFilaments() + sigLabor() + sigMisc() + sigPrice(); }
+
+  const curF = $derived(sigFilaments());
+  const curL = $derived(sigLabor());
+  const curM = $derived(sigMisc());
+  const curP = $derived(sigPrice());
+  const curAll = $derived(sigAll());
+
+  let okF = $state(false);
+  let okL = $state(false);
+  let okM = $state(false);
+  let okP = $state(false);
+  let confF = $state('');
+  let confL = $state('');
+  let confM = $state('');
+  let confP = $state('');
+
+  // editar uma seção derruba a confirmação dela
+  $effect(() => { if (okF && curF !== confF) okF = false; });
+  $effect(() => { if (okL && curL !== confL) okL = false; });
+  $effect(() => { if (okM && curM !== confM) okM = false; });
+  $effect(() => { if (okP && curP !== confP) okP = false; });
+
+  function toggleF() { okF = !okF; if (okF) confF = sigFilaments(); }
+  function toggleL() { okL = !okL; if (okL) confL = sigLabor(); }
+  function toggleM() { okM = !okM; if (okM) confM = sigMisc(); }
+  function toggleP() { okP = !okP; if (okP) confP = sigPrice(); }
+
+  // ---- resultado (só após clicar Calcular) ----
+  let result = $state<Breakdown | null>(null);
+  let resultSig = $state('');
+  // qualquer edição após calcular invalida o resultado
+  $effect(() => { if (result && curAll !== resultSig) result = null; });
+
+  let lucro = $derived(result ? result.priceWithMarginCentavos - result.totalCostCentavos : 0);
+
+  function calcular() {
+    const faltam: string[] = [];
+    if (!okF) faltam.push('Filamentos');
+    if (!okL) faltam.push('Tempo & mão de obra');
+    if (!okP) faltam.push('Preço de venda');
+    if (faltam.length) {
+      result = null;
+      calcMsg = `Confirme antes de calcular: ${faltam.join(', ')}.`;
+      return;
+    }
+    calcMsg = '';
+    result = computeBreakdown(settings, job);
+    resultSig = sigAll();
+  }
 
   // edição de um cálculo salvo
   let editingId = $state<string | null>(null);
@@ -75,6 +136,12 @@
     saveTags = (rec.tags ?? []).join(', ');
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
+    // ao editar, confirma tudo e já mostra o resultado salvo
+    confF = sigFilaments(); confL = sigLabor(); confM = sigMisc(); confP = sigPrice();
+    okF = okL = okM = okP = true;
+    result = clone(rec.breakdown);
+    resultSig = sigAll();
+    calcMsg = '';
     editState.record = null; // consumido
   });
 
@@ -95,11 +162,11 @@
     saveLabel = '';
     saveTags = '';
     editingId = null;
+    okF = okL = okM = okP = false;
+    result = null;
+    calcMsg = '';
+    savedMsg = '';
   }
-
-  let breakdown = $derived(computeBreakdown(settings, job));
-  // lucro = o que sobra pro vendedor (preço após margem, já líquido da taxa de marketplace) menos o custo
-  let lucro = $derived(breakdown.priceWithMarginCentavos - breakdown.totalCostCentavos);
 
   const MAX_FILAMENTS = 12;
   function setFilamentCount(n: number) {
@@ -160,16 +227,23 @@
     saveTags = cur.join(', ');
   }
 
-  async function salvarHistorico() {
+  async function cadastrar() {
+    if (!result) return; // só cadastra após calcular
     const label = saveLabel.trim();
     if (!label) {
-      savedMsg = 'Dê um nome à peça antes de salvar.';
+      savedMsg = 'Dê um nome à peça antes de cadastrar.';
       setTimeout(() => (savedMsg = ''), 3500);
+      return;
+    }
+    // nome único obrigatório
+    if (await historyLabelExists(label, editingId ?? undefined)) {
+      savedMsg = `Já existe uma peça chamada "${label}". Escolha outro nome.`;
+      setTimeout(() => (savedMsg = ''), 4500);
       return;
     }
     const tags = parseTags(saveTags);
     if (editingId) {
-      if (!confirm('Atualizar esta peça salva com os valores atuais?')) return;
+      if (!confirm(`Tem certeza que deseja atualizar a peça "${label}"?`)) return;
       await updateHistory({
         id: editingId,
         createdAt: editingCreatedAt,
@@ -177,28 +251,36 @@
         tags,
         job: clone(job),
         configSnapshot: clone(settings),
-        breakdown: clone(breakdown),
+        breakdown: clone(result),
       });
-      savedMsg = 'Cálculo atualizado ✓';
+      savedMsg = 'Peça atualizada ✓';
       editingId = null;
-      saveLabel = '';
-      saveTags = '';
     } else {
-      if (!confirm(`Cadastrar a peça "${label}" no histórico?`)) return;
+      if (!confirm(`Tem certeza que deseja cadastrar a peça "${label}"?`)) return;
       await saveHistory({
         label,
         tags,
         job: clone(job),
         configSnapshot: clone(settings),
-        breakdown: clone(breakdown),
+        breakdown: clone(result),
       });
-      savedMsg = 'Cálculo salvo no histórico ✓';
-      saveLabel = '';
-      saveTags = '';
+      savedMsg = 'Peça cadastrada ✓';
     }
     setTimeout(() => (savedMsg = ''), 3500);
   }
 </script>
+
+{#snippet okToggle(on: boolean, toggle: () => void)}
+  <button
+    type="button"
+    class="flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors {on
+      ? 'bg-emerald-500 text-white'
+      : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300'}"
+    onclick={toggle}
+  >
+    {#if on}<Check size={14} /> OK{:else}Confirmar{/if}
+  </button>
+{/snippet}
 
 <div class="space-y-4 p-4 pb-24">
   <div class="flex items-center justify-between gap-2">
@@ -211,7 +293,7 @@
   </div>
   {#if editingId}
     <div class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-800">
-      Editando um cálculo salvo. Ao salvar, o registro no histórico será atualizado.
+      Editando um cálculo salvo. Ao cadastrar, o registro no histórico será atualizado.
     </div>
   {/if}
 
@@ -256,7 +338,10 @@
 
   <!-- Filamentos -->
   <section class="glass p-4">
-    <h2 class="mb-2 font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
+    <div class="mb-2 flex items-center justify-between gap-2">
+      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
+      {@render okToggle(okF, toggleF)}
+    </div>
     <div class="mb-3">
       <span class="mb-1 block text-xs text-slate-500">Quantidade de filamentos</span>
       <div class="flex gap-2">
@@ -327,7 +412,10 @@
 
   <!-- Tempo + mão de obra -->
   <section class="glass p-4">
-    <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Tempo & mão de obra</h2>
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Tempo & mão de obra</h2>
+      {@render okToggle(okL, toggleL)}
+    </div>
     <div class="mb-3">
       <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tempo de impressão</span>
       <div class="grid grid-cols-2 gap-2">
@@ -362,7 +450,13 @@
 
   <!-- Custos avulsos -->
   <section class="glass p-4">
-    <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5">
+        <h2 class="font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
+        <span class="text-xs text-slate-400">(opcional)</span>
+      </div>
+      {@render okToggle(okM, toggleM)}
+    </div>
     <div class="space-y-3">
       {#each job.misc as m, i (i)}
         <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
@@ -402,7 +496,10 @@
 
   <!-- Preço de venda -->
   <section class="glass p-4">
-    <h2 class="mb-3 font-semibold text-sky-600 dark:text-sky-400">Preço de venda</h2>
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Preço de venda</h2>
+      {@render okToggle(okP, toggleP)}
+    </div>
     <div class="mb-3 flex gap-2">
       <button
         class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.priceMode === 'margin' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
@@ -435,37 +532,57 @@
     </div>
   </section>
 
-  <!-- Resultado -->
+  <!-- Ações: calcular + cadastrar -->
   <section class="glass p-4">
-    <!-- Custo total destacado (gasto = vermelho) -->
-    <div class="rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-4 text-center text-white shadow-lg shadow-red-500/25">
-      <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Custo total (gasto)</p>
-      <p class="mt-1 text-3xl font-extrabold">{formatBRL(breakdown.totalCostCentavos)}</p>
-    </div>
-    <div class="mt-3 grid grid-cols-2 gap-3">
-      <div class="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-3 text-center text-white shadow-md shadow-sky-500/20">
-        <p class="text-xs font-medium text-white/80">Preço de venda</p>
-        <p class="mt-0.5 text-xl font-bold">{formatBRL(breakdown.finalPriceCentavos)}</p>
+    <button
+      class="w-full rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 py-3 text-base font-bold text-white shadow-md shadow-sky-500/25 transition-transform active:scale-95"
+      onclick={calcular}
+    >
+      Calcular
+    </button>
+    {#if calcMsg}<p class="mt-2 text-center text-sm font-medium text-amber-600 dark:text-amber-400">{calcMsg}</p>{/if}
+
+    {#if result}
+      <!-- Custo total destacado (gasto = vermelho) -->
+      <div class="mt-4 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-4 text-center text-white shadow-lg shadow-red-500/25">
+        <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Custo total (gasto)</p>
+        <p class="mt-1 text-3xl font-extrabold">{formatBRL(result.totalCostCentavos)}</p>
       </div>
-      <div class="rounded-2xl p-3 text-center text-white shadow-md {lucro >= 0 ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}">
-        <p class="text-xs font-medium text-white/80">Lucro</p>
-        <p class="mt-0.5 text-xl font-bold">{formatBRL(lucro)}</p>
+      <div class="mt-3 grid grid-cols-2 gap-3">
+        <div class="rounded-2xl bg-gradient-to-br from-sky-500 to-violet-500 p-3 text-center text-white shadow-md shadow-sky-500/20">
+          <p class="text-xs font-medium text-white/80">Preço de venda</p>
+          <p class="mt-0.5 text-xl font-bold">{formatBRL(result.finalPriceCentavos)}</p>
+        </div>
+        <div class="rounded-2xl p-3 text-center text-white shadow-md {lucro >= 0 ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/20' : 'bg-gradient-to-br from-rose-500 to-red-600 shadow-red-500/20'}">
+          <p class="text-xs font-medium text-white/80">Lucro</p>
+          <p class="mt-0.5 text-xl font-bold">{formatBRL(lucro)}</p>
+        </div>
       </div>
-    </div>
-    <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
-      <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(breakdown.filamentCentavos)}</span></li>
-      <li class="flex justify-between"><span>Energia</span><span>{formatBRL(breakdown.energyCentavos)}</span></li>
-      <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(breakdown.wearCentavos)}</span></li>
-      <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(breakdown.laborCentavos)}</span></li>
-      <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(breakdown.miscCentavos)}</span></li>
-      <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(breakdown.priceWithMarginCentavos)}</span></li>
-      {#if breakdown.marketplaceName}
-        <li class="flex justify-between"><span>+ {breakdown.marketplaceName} ({breakdown.marketplaceRatePercent}%)</span><span>{formatBRL(breakdown.finalPriceCentavos - breakdown.priceWithMarginCentavos)}</span></li>
-      {/if}
-    </ul>
+      <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
+        <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(result.filamentCentavos)}</span></li>
+        <li class="flex justify-between"><span>Energia</span><span>{formatBRL(result.energyCentavos)}</span></li>
+        <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(result.wearCentavos)}</span></li>
+        <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(result.laborCentavos)}</span></li>
+        <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(result.miscCentavos)}</span></li>
+        <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(result.priceWithMarginCentavos)}</span></li>
+        {#if result.marketplaceName}
+          <li class="flex justify-between"><span>+ {result.marketplaceName} ({result.marketplaceRatePercent}%)</span><span>{formatBRL(result.finalPriceCentavos - result.priceWithMarginCentavos)}</span></li>
+        {/if}
+      </ul>
+    {/if}
+
     <div class="mt-4">
-      <button class="w-full rounded-xl px-3 py-2.5 font-semibold text-white shadow-md transition-transform active:scale-95 {editingId ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/25' : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25'}" onclick={salvarHistorico}>{editingId ? 'Atualizar cálculo' : 'Salvar no histórico'}</button>
+      <button
+        class="w-full rounded-xl px-3 py-2.5 font-semibold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 {editingId ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/25' : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/25'}"
+        disabled={!result}
+        onclick={cadastrar}
+      >
+        {editingId ? 'Atualizar peça' : 'Cadastrar peça'}
+      </button>
+      {#if !result}
+        <p class="mt-1 text-center text-xs text-slate-400">Calcule primeiro para liberar o cadastro.</p>
+      {/if}
     </div>
-    {#if savedMsg}<p class="mt-1 text-center text-sm text-emerald-600">{savedMsg}</p>{/if}
+    {#if savedMsg}<p class="mt-1 text-center text-sm text-emerald-600 dark:text-emerald-400">{savedMsg}</p>{/if}
   </section>
 </div>

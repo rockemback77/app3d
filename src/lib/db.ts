@@ -278,6 +278,14 @@ export async function deleteHistory(id: string): Promise<void> {
   await db.history.delete(id);
 }
 
+/** Verifica se já existe uma peça com o mesmo nome (case-insensitive). */
+export async function historyLabelExists(label: string, exceptId?: string): Promise<boolean> {
+  const l = label.trim().toLowerCase();
+  if (!l) return false;
+  const all = await db.history.toArray();
+  return all.some((r) => r.id !== exceptId && r.label.trim().toLowerCase() === l);
+}
+
 /** Conta quantas peças usam uma tag (case-insensitive). */
 export async function countHistoryWithTag(tag: string): Promise<number> {
   const t = tag.toLowerCase();
