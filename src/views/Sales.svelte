@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { ArrowLeftRight } from 'lucide-svelte';
+  import { ArrowLeftRight, Plus, CalendarDays, BarChart3, type Icon } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import {
@@ -126,15 +126,26 @@
       g.items.push(t);
     }
     return [...map.entries()]
-      .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1)) // mais antigo -> mais recente
       .map(([key, g]) => ({
         key,
         receita: g.receita,
         despesa: g.despesa,
         saldo: g.receita - g.despesa,
-        items: g.items.sort((a, b) => (a.date < b.date ? 1 : -1)),
+        items: g.items.sort((a, b) => (a.date < b.date ? -1 : 1)),
       })) as MonthAgg[];
   });
+
+  // anos disponíveis (para o filtro do bloco de meses)
+  let anos = $derived.by(() => {
+    const set = new Set<string>();
+    for (const g of grupos) set.add(g.key.slice(0, 4));
+    return [...set].sort((a, b) => (a < b ? 1 : -1)); // mais recente primeiro no dropdown
+  });
+  let anoSel = $state<string>('todos');
+  let gruposFiltrados = $derived(
+    anoSel === 'todos' ? grupos : grupos.filter((g) => g.key.slice(0, 4) === anoSel)
+  );
 
   // ---- gráfico ----
   let mesesGrafico = $state(6);
@@ -158,14 +169,24 @@
   });
 </script>
 
+{#snippet head(IconC: typeof Icon, grad: string, title: string)}
+  <div class="flex items-center gap-2.5">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {grad} text-white shadow-md">
+      <IconC size={18} />
+    </span>
+    <h2 class="font-semibold text-slate-100">{title}</h2>
+  </div>
+{/snippet}
+
 <div class="space-y-4 p-4 pb-24">
   <h1 class="flex items-center gap-2.5 text-xl font-bold">
     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md"><ArrowLeftRight size={18} /></span>
     Receita × Despesas
   </h1>
 
-  <!-- Formulário -->
-  <section class="glass p-4">
+  <!-- Bloco: Cadastro -->
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3">{@render head(Plus, 'from-sky-500 to-violet-500', 'Cadastro')}</div>
     <div class="mb-3 flex gap-2">
       <button
         class="flex-1 rounded-lg py-1.5 text-sm font-medium {tipo === 'receita' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
@@ -245,46 +266,57 @@
     </button>
   </section>
 
-  <!-- Lançamentos por mês + saldo -->
-  {#if grupos.length}
-    {#each grupos as g (g.key)}
-      <section class="glass p-4">
-        <h2 class="mb-2 font-semibold capitalize text-sky-600 dark:text-sky-400">{monthLabel(g.key)}</h2>
-        <div class="space-y-1">
-          {#each g.items as t (t.id)}
-            <div class="flex items-center gap-2 text-sm">
-              <span class="w-12 shrink-0 text-xs text-slate-400">{t.date.slice(8, 10)}/{t.date.slice(5, 7)}</span>
-              <span class="min-w-0 flex-1 truncate">{t.label} <span class="text-xs text-slate-400">×{t.quantity}</span></span>
-              <span class="shrink-0 font-medium {t.type === 'receita' ? 'text-emerald-600' : 'text-red-500'}">
-                {t.type === 'receita' ? '+' : '−'} {formatBRL(Math.round(t.quantity * t.unitCentavos))}
-              </span>
-              <button class="shrink-0 text-xs text-slate-400 hover:text-red-500" onclick={() => remover(t)}>✕</button>
+  <!-- Bloco: Detalhe dos meses -->
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      {@render head(CalendarDays, 'from-amber-500 to-orange-500', 'Detalhe dos meses')}
+      <select class="shrink-0 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm" bind:value={anoSel}>
+        <option value="todos">Todos os anos</option>
+        {#each anos as a (a)}<option value={a}>{a}</option>{/each}
+      </select>
+    </div>
+    {#if gruposFiltrados.length}
+      <div class="space-y-3">
+        {#each gruposFiltrados as g (g.key)}
+          <div class="rounded-xl border border-white/10 bg-slate-900/30 p-3">
+            <h3 class="mb-2 font-semibold capitalize text-sky-400">{monthLabel(g.key)}</h3>
+            <div class="space-y-1">
+              {#each g.items as t (t.id)}
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="w-12 shrink-0 text-xs text-slate-400">{t.date.slice(8, 10)}/{t.date.slice(5, 7)}</span>
+                  <span class="min-w-0 flex-1 truncate">{t.label} <span class="text-xs text-slate-400">×{t.quantity}</span></span>
+                  <span class="shrink-0 font-medium {t.type === 'receita' ? 'text-emerald-400' : 'text-red-400'}">
+                    {t.type === 'receita' ? '+' : '−'} {formatBRL(Math.round(t.quantity * t.unitCentavos))}
+                  </span>
+                  <button class="shrink-0 text-xs text-slate-400 hover:text-red-400" onclick={() => remover(t)}>✕</button>
+                </div>
+              {/each}
             </div>
-          {/each}
-        </div>
-        <div class="mt-3 border-t border-slate-200 pt-2 text-sm dark:border-slate-700">
-          <div class="flex justify-between text-emerald-600"><span>Receitas</span><span>{formatBRL(g.receita)}</span></div>
-          <div class="flex justify-between text-red-500"><span>Despesas</span><span>{formatBRL(g.despesa)}</span></div>
-          <div class="mt-1 flex justify-between font-bold">
-            <span>Saldo do mês</span>
-            <span class={g.saldo >= 0 ? 'text-emerald-600' : 'text-red-500'}>{formatBRL(g.saldo)}</span>
+            <div class="mt-3 border-t border-slate-700 pt-2 text-sm">
+              <div class="flex justify-between text-emerald-400"><span>Receitas</span><span>{formatBRL(g.receita)}</span></div>
+              <div class="flex justify-between text-red-400"><span>Despesas</span><span>{formatBRL(g.despesa)}</span></div>
+              <div class="mt-1 flex justify-between font-bold">
+                <span>Saldo do mês</span>
+                <span class={g.saldo >= 0 ? 'text-emerald-400' : 'text-red-400'}>{formatBRL(g.saldo)}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
-    {/each}
-  {:else}
-    <p class="glass p-6 text-center text-sm text-slate-500">
-      Nenhum lançamento ainda. Adicione uma receita ou despesa acima.
-    </p>
-  {/if}
+        {/each}
+      </div>
+    {:else}
+      <p class="text-center text-sm text-slate-500">
+        Nenhum lançamento{anoSel !== 'todos' ? ` em ${anoSel}` : ''}. Adicione no bloco Cadastro.
+      </p>
+    {/if}
+  </section>
 
-  <!-- Gráfico -->
-  <section class="glass p-4">
-    <div class="mb-3 flex items-center justify-between">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Receita × Despesa</h2>
+  <!-- Bloco: Gráfico -->
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      {@render head(BarChart3, 'from-emerald-500 to-teal-500', 'Gráfico')}
       <label class="flex items-center gap-1.5 text-xs text-slate-500">
-        Mostrar últimos
-        <select class="rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-600 dark:bg-slate-900" bind:value={mesesGrafico}>
+        Últimos
+        <select class="rounded border border-slate-600 bg-slate-900 px-2 py-1" bind:value={mesesGrafico}>
           {#each Array.from({ length: 12 }, (_, i) => i + 1) as n (n)}
             <option value={n}>{n}</option>
           {/each}
