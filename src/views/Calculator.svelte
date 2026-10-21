@@ -7,7 +7,7 @@
   import { listFilaments, listCostItems, saveHistory, updateHistory, historyLabelExists } from '../lib/db';
   import { ui, editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
-  import { filamentCostCentavos } from '../lib/engine/costs';
+  import { filamentCostCentavos, wearCostCentavos } from '../lib/engine/costs';
   import type { JobInputs } from '../lib/engine/types';
   import { formatBRL } from '../lib/money';
 
@@ -65,6 +65,7 @@
     laborHours: 0,
     laborFixedCentavos: 0,
     misc: [],
+    useWear: true,
     priceMode: 'margin',
     marginPercent: 50,
     fixedPriceCentavos: 0,
@@ -93,7 +94,7 @@
   // ---- confirmação por seção ----
   // assinaturas de cada seção; ao mudar, a confirmação cai
   function sigFilaments() { return JSON.stringify(job.filaments); }
-  function sigLabor() { return JSON.stringify([hh, mm, job.laborMode, laborHh, laborMm, job.laborFixedCentavos]); }
+  function sigLabor() { return JSON.stringify([hh, mm, job.laborMode, laborHh, laborMm, job.laborFixedCentavos, job.useWear]); }
   function sigMisc() { return JSON.stringify(job.misc); }
   function sigPrice() { return JSON.stringify([job.priceMode, job.marginPercent, job.fixedPriceCentavos, job.marketplaceId]); }
   function sigAll() { return sigFilaments() + sigLabor() + sigMisc() + sigPrice(); }
@@ -126,6 +127,7 @@
   $effect(() => { if (result && curAll !== resultSig) result = null; });
 
   let lucro = $derived(result ? result.priceWithMarginCentavos - result.totalCostCentavos : 0);
+  let desgaste = $derived(wearCostCentavos(settings, job.printHours));
 
   function calcular() {
     const faltam: string[] = [];
@@ -164,6 +166,7 @@
     job.laborHours = rec.job.laborHours;
     job.laborFixedCentavos = rec.job.laborFixedCentavos;
     job.misc = clone(rec.job.misc);
+    job.useWear = rec.job.useWear ?? true;
     job.priceMode = rec.job.priceMode ?? 'margin';
     job.marginPercent = rec.job.marginPercent;
     job.fixedPriceCentavos = rec.job.fixedPriceCentavos ?? 0;
@@ -192,6 +195,7 @@
     job.laborHours = 0;
     job.laborFixedCentavos = 0;
     job.misc = [];
+    job.useWear = true;
     job.priceMode = 'margin';
     job.marginPercent = 50;
     job.fixedPriceCentavos = 0;
@@ -506,6 +510,22 @@
         <NumberInput bind:value={mm} suffix="min" decimals={0} />
       </div>
     </div>
+
+    <!-- Desgaste da máquina (opcional) -->
+    <label class="mb-3 flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+      <div class="min-w-0">
+        <span class="text-sm font-medium text-slate-200">Usar desgaste da máquina</span>
+        <p class="text-xs text-slate-400">
+          {job.useWear !== false ? '+' : ''}{formatBRL(desgaste)} pelo tempo de impressão
+        </p>
+      </div>
+      <input
+        type="checkbox"
+        class="h-5 w-5 shrink-0 accent-sky-500"
+        checked={job.useWear !== false}
+        onchange={(e) => (job.useWear = e.currentTarget.checked)}
+      />
+    </label>
 
     <div class="mb-2 flex gap-2">
       <button

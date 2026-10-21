@@ -48,6 +48,7 @@ export interface JobInputs {
   laborHours: number;
   laborFixedCentavos: number;
   misc: JobMiscItem[];
+  useWear?: boolean; // incluir desgaste da máquina no custo (padrão: true)
   priceMode: PriceMode; // 'margin' = por margem de lucro; 'fixed' = valor de venda informado
   marginPercent: number;
   fixedPriceCentavos: number; // usado quando priceMode === 'fixed'

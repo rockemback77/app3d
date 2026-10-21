@@ -15,7 +15,7 @@ import {
 export function computeBreakdown(config: AppConfig, job: JobInputs): CostBreakdown {
   const filamentCentavos = totalFilamentCentavos(job);
   const energyCentavos = energyCostCentavos(config, job.printHours);
-  const wearCentavos = wearCostCentavos(config, job.printHours);
+  const wearCentavos = job.useWear === false ? 0 : wearCostCentavos(config, job.printHours);
   const laborCentavos = laborCostCentavos(config, job);
   const miscCentavos = miscCostCentavos(job);
 
