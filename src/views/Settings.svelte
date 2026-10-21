@@ -279,6 +279,14 @@
             </label>
             {#if editTag === tag}
               <input
+                type="color"
+                class="h-7 w-8 shrink-0 cursor-pointer rounded border border-slate-600 bg-slate-900"
+                value={tagColor(tag)}
+                onchange={(e) => setTagColor(tag, e.currentTarget.value)}
+                aria-label="Cor da tag {tag}"
+                title="Cor da tag"
+              />
+              <input
                 class="min-w-0 flex-1 rounded border border-slate-600 bg-slate-900 px-2 py-1 text-sm"
                 maxlength="30"
                 bind:value={editTagVal}
