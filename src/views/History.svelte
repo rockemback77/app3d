@@ -4,7 +4,7 @@
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { formatBRL } from '../lib/money';
   import { ui, editHistory } from '../lib/stores/ui.svelte';
-  import { settings } from '../lib/stores/settings.svelte';
+  import { settings, tagColor } from '../lib/stores/settings.svelte';
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
@@ -75,7 +75,8 @@
           onclick={() => (tagFiltro = null)}>Todas</button>
         {#each settings.tags ?? [] as tag (tag)}
           <button
-            class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagFiltro === tag ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+            class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            style={tagFiltro === tag ? `background:${tagColor(tag)};color:#fff` : `background:${tagColor(tag)}22;color:${tagColor(tag)}`}
             onclick={() => (tagFiltro = tagFiltro === tag ? null : tag)}>{tag}</button>
         {/each}
       </div>
@@ -96,7 +97,7 @@
             {#if rec.tags && rec.tags.length}
               <div class="mt-1 flex flex-wrap gap-1">
                 {#each rec.tags as tag (tag)}
-                  <span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">{tag}</span>
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
                 {/each}
               </div>
             {/if}

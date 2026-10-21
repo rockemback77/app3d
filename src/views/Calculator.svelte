@@ -3,7 +3,7 @@
   import { Check, Spool, Clock, Receipt, DollarSign, Package, Calculator as CalcIcon, type Icon } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
-  import { settings } from '../lib/stores/settings.svelte';
+  import { settings, tagColor } from '../lib/stores/settings.svelte';
   import { listFilaments, listCostItems, saveHistory, updateHistory, historyLabelExists } from '../lib/db';
   import { ui, editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
@@ -327,17 +327,17 @@
       {#if settings.tags.length}
         <div class="flex flex-wrap gap-2">
           {#each settings.tags ?? [] as tag (tag)}
+            {@const ativo = tagsAtivas.has(tag.toLowerCase())}
             <button
               type="button"
-              class="rounded-full px-3 py-1 text-xs font-medium transition-colors {tagsAtivas.has(tag.toLowerCase())
-                ? 'bg-sky-500 text-white'
-                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+              class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+              style={ativo ? `background:${tagColor(tag)};color:#fff` : `background:${tagColor(tag)}22;color:${tagColor(tag)}`}
               onclick={() => toggleTag(tag)}
             >{tag}</button>
           {/each}
         </div>
       {:else}
-        <p class="text-xs text-slate-400">Nenhuma tag cadastrada. Adicione em Configurações → Tags das peças.</p>
+        <p class="text-xs text-slate-400">Nenhuma tag cadastrada. Adicione em Configurações → Tags dos projetos.</p>
       {/if}
     </div>
   </section>

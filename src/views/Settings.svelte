@@ -23,6 +23,9 @@
     removeMarketplace,
     addTag,
     removeTag,
+    setTagColor,
+    tagColor,
+    DEFAULT_TAG_COLOR,
   } from '../lib/stores/settings.svelte';
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
@@ -61,8 +64,9 @@
 
   let showWatts = $state(false);
   let novaTag = $state('');
+  let novaTagCor = $state(DEFAULT_TAG_COLOR);
   function adicionarTag() {
-    addTag(novaTag);
+    addTag(novaTag, novaTagCor);
     novaTag = '';
   }
   async function removerTag(tag: string) {
@@ -194,8 +198,14 @@
   </div>
 
   <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
-    {@render secao(Tag, 'from-cyan-500 to-blue-500', 'Tags das peças', 'Opções que aparecem ao salvar uma peça')}
+    {@render secao(Tag, 'from-cyan-500 to-blue-500', 'Tags dos projetos', 'Opções que aparecem ao salvar um projeto')}
     <div class="mb-3 flex gap-2">
+      <input
+        type="color"
+        class="h-9 w-10 shrink-0 cursor-pointer rounded border border-slate-600 bg-slate-900"
+        bind:value={novaTagCor}
+        aria-label="Cor da nova tag"
+      />
       <input
         class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm"
         placeholder="Nova tag"
@@ -208,9 +218,22 @@
     {#if settings.tags.length}
       <div class="flex flex-wrap gap-2">
         {#each settings.tags ?? [] as tag (tag)}
-          <span class="flex items-center gap-1.5 rounded-full bg-sky-900/50 py-1 pl-3 pr-1.5 text-xs font-medium text-sky-300">
+          <span
+            class="flex items-center gap-1.5 rounded-full py-1 pl-1.5 pr-1.5 text-xs font-medium"
+            style="background:{tagColor(tag)}22;color:{tagColor(tag)}"
+          >
+            <label class="relative flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center" title="Mudar cor">
+              <span class="h-3 w-3 rounded-full" style="background:{tagColor(tag)}"></span>
+              <input
+                type="color"
+                value={tagColor(tag)}
+                onchange={(e) => setTagColor(tag, e.currentTarget.value)}
+                class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                aria-label="Cor da tag {tag}"
+              />
+            </label>
             {tag}
-            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-700 text-sky-200 hover:bg-sky-600" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
+            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-black/20 hover:bg-black/40" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
           </span>
         {/each}
       </div>

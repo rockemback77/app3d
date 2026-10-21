@@ -19,7 +19,8 @@ export interface AppConfig {
   wearParts: WearPart[];
   laborRateCentavos: number; // R$/hora de mão de obra padrão
   marketplaces: MarketplacePreset[];
-  tags: string[]; // tags pré-definidas para as peças
+  tags: string[]; // tags pré-definidas para os projetos
+  tagColors: Record<string, string>; // cor (hex) por nome de tag
 }
 
 export interface JobFilament {

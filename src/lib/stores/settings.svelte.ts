@@ -18,8 +18,17 @@ export function defaultConfig(): AppConfig {
       { id: uid(), name: 'Shopee', ratePercent: 20 },
     ],
     tags: ['Decoração', 'Utilidade', 'Presente', 'Cliente', 'Protótipo'],
+    tagColors: {
+      'Decoração': '#ec4899',
+      'Utilidade': '#3b82f6',
+      'Presente': '#f97316',
+      'Cliente': '#22c55e',
+      'Protótipo': '#8b5cf6',
+    },
   };
 }
+
+export const DEFAULT_TAG_COLOR = '#0ea5e9';
 
 /** Normaliza qualquer config (localStorage, nuvem ou backup): aplica defaults e migra formato antigo. */
 function normalize(input: unknown): AppConfig {
@@ -47,6 +56,12 @@ function normalize(input: unknown): AppConfig {
     wearParts,
     marketplaces: Array.isArray(parsed.marketplaces) ? parsed.marketplaces : base.marketplaces,
     tags: Array.isArray(parsed.tags) ? parsed.tags : base.tags,
+    tagColors:
+      parsed.tagColors && typeof parsed.tagColors === 'object'
+        ? (parsed.tagColors as Record<string, string>)
+        : Array.isArray(parsed.tags)
+          ? {}
+          : base.tagColors,
   };
 }
 
@@ -113,11 +128,13 @@ export function removeMarketplace(id: string): void {
   persistSettings();
 }
 
-export function addTag(name: string): void {
+export function addTag(name: string, color?: string): void {
   const t = name.trim();
   if (!t) return;
   if (!settings.tags.some((x: string) => x.toLowerCase() === t.toLowerCase())) {
     settings.tags.push(t);
+    if (!settings.tagColors) settings.tagColors = {};
+    settings.tagColors[t] = color || DEFAULT_TAG_COLOR;
     persistSettings();
   }
 }
@@ -125,5 +142,17 @@ export function addTag(name: string): void {
 export function removeTag(name: string): void {
   const i = settings.tags.indexOf(name);
   if (i >= 0) settings.tags.splice(i, 1);
+  if (settings.tagColors) delete settings.tagColors[name];
   persistSettings();
+}
+
+export function setTagColor(name: string, color: string): void {
+  if (!settings.tagColors) settings.tagColors = {};
+  settings.tagColors[name] = color;
+  persistSettings();
+}
+
+/** Cor da tag (hex), com fallback padrão. */
+export function tagColor(name: string): string {
+  return settings.tagColors?.[name] ?? DEFAULT_TAG_COLOR;
 }
