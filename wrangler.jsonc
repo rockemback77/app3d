@@ -1,0 +1,10 @@
+{
+  // Config da Cloudflare Workers (deploy de site estatico + assets).
+  "name": "app3d",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./dist",
+    // PWA de pagina unica: rota desconhecida cai no index.html
+    "not_found_handling": "single-page-application"
+  }
+}
