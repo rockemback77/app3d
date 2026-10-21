@@ -125,14 +125,18 @@
     removeTag(tag);
   }
   const printersInfo = [
-    { nome: 'Bambu Lab A1 Mini', w: '80 W', kwh: '0,80 kWh' },
-    { nome: 'Bambu Lab A1', w: '95 W', kwh: '0,95 kWh' },
-    { nome: 'Creality Ender-3 V3 KE', w: '120 W*', kwh: '1,20 kWh' },
-    { nome: 'Creality Ender-3 V3 SE', w: '125 W*', kwh: '1,25 kWh' },
-    { nome: 'Creality K1C', w: '130 W*', kwh: '1,30 kWh' },
-    { nome: 'Bambu Lab P1S', w: '105 W', kwh: '1,05 kWh' },
-    { nome: 'Bambu Lab X1 Carbon', w: '105 W', kwh: '1,05 kWh' },
+    { nome: 'Bambu Lab A1 Mini', watts: 80, w: '80 W', kwh: '0,80 kWh' },
+    { nome: 'Bambu Lab A1', watts: 95, w: '95 W', kwh: '0,95 kWh' },
+    { nome: 'Creality Ender-3 V3 KE', watts: 120, w: '120 W*', kwh: '1,20 kWh' },
+    { nome: 'Creality Ender-3 V3 SE', watts: 125, w: '125 W*', kwh: '1,25 kWh' },
+    { nome: 'Creality K1C', watts: 130, w: '130 W*', kwh: '1,30 kWh' },
+    { nome: 'Bambu Lab P1S', watts: 105, w: '105 W', kwh: '1,05 kWh' },
+    { nome: 'Bambu Lab X1 Carbon', watts: 105, w: '105 W', kwh: '1,05 kWh' },
   ];
+  function aplicarImpressora(v: string) {
+    const n = Number(v);
+    if (n > 0) settings.printerWatts = n;
+  }
 
   async function onImportFile(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -331,6 +335,19 @@
       <label class="block">
         <span class="mb-1 block text-sm text-slate-300">Preço do kWh</span>
         <CurrencyInput bind:value={settings.kwhPriceCentavos} />
+      </label>
+      <label class="block">
+        <span class="mb-1 block text-sm text-slate-300">Minha impressora (opcional)</span>
+        <select
+          class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm"
+          onchange={(e) => aplicarImpressora(e.currentTarget.value)}
+        >
+          <option value="">— Selecione para preencher a potência —</option>
+          {#each printersInfo as p (p.nome)}
+            <option value={p.watts}>{p.nome} ({p.watts} W)</option>
+          {/each}
+        </select>
+        <span class="mt-1 block text-xs text-slate-400">Só preenche a potência abaixo. Você pode ajustar depois.</span>
       </label>
       <div class="block">
         <div class="mb-1 flex items-center gap-1.5">
