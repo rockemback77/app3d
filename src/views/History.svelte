@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Puzzle } from 'lucide-svelte';
+  import { Puzzle, SquarePen, Pencil, Trash2 } from 'lucide-svelte';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { formatBRL } from '../lib/money';
   import { ui, editHistory } from '../lib/stores/ui.svelte';
@@ -8,6 +8,7 @@
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
+  let acoesDe = $state<string | null>(null); // projeto com menu de ações aberto
   let query = $state('');
   let tagFiltro = $state<string | null>(null);
 
@@ -120,9 +121,33 @@
                 <li class="flex justify-between text-xs"><span>{rec.breakdown.marketplaceName} ({rec.breakdown.marketplaceRatePercent}%)</span><span></span></li>
               {/if}
             </ul>
-            <div class="mt-3 flex gap-4">
-              <button class="text-sm font-medium text-sky-600" onclick={() => editHistory(rec)}>Editar</button>
-              <button class="text-sm text-red-500" onclick={() => remover(rec)}>Excluir</button>
+            <div class="mt-3 flex justify-end">
+              <div class="relative">
+                <button
+                  class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-700 text-slate-200 hover:bg-slate-600"
+                  aria-label="Editar projeto"
+                  title="Editar"
+                  onclick={() => (acoesDe = acoesDe === rec.id ? null : rec.id)}
+                >
+                  <SquarePen size={18} />
+                </button>
+                {#if acoesDe === rec.id}
+                  <div class="absolute bottom-full right-0 z-10 mb-1 w-40 overflow-hidden rounded-lg border border-white/10 bg-slate-800 shadow-xl">
+                    <button
+                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700"
+                      onclick={() => { acoesDe = null; editHistory(rec); }}
+                    >
+                      <Pencil size={15} /> Editar
+                    </button>
+                    <button
+                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-400 hover:bg-slate-700"
+                      onclick={() => { acoesDe = null; remover(rec); }}
+                    >
+                      <Trash2 size={15} /> Excluir
+                    </button>
+                  </div>
+                {/if}
+              </div>
             </div>
           </div>
         {/if}
