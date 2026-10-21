@@ -193,18 +193,18 @@ export async function deleteCostItem(id: string): Promise<void> {
   await db.costItems.delete(id);
 }
 
-// custos padrão com valor sugerido (centavos)
-const DEFAULT_COST_ITEMS: { name: string; cost: number }[] = [
-  { name: 'Embalagem', cost: 150 },
-  { name: 'Frete', cost: 1500 },
-  { name: 'Etiqueta', cost: 30 },
-  { name: 'Acabamento', cost: 200 },
-  { name: 'Cola', cost: 50 },
-  { name: 'Lixa', cost: 100 },
-  { name: 'Parafusos / ímãs', cost: 150 },
-  { name: 'Tinta / pintura', cost: 300 },
-  { name: 'Álcool isopropílico', cost: 50 },
-  { name: 'Manutenção', cost: 200 },
+// custos padrão com valor sugerido (centavos) e categoria
+const DEFAULT_COST_ITEMS: { name: string; cost: number; category: string }[] = [
+  { name: 'Embalagem', cost: 150, category: 'Embalagem' },
+  { name: 'Frete', cost: 1500, category: 'Frete' },
+  { name: 'Etiqueta', cost: 30, category: 'Embalagem' },
+  { name: 'Acabamento', cost: 200, category: 'Acabamento' },
+  { name: 'Cola', cost: 50, category: 'Acabamento' },
+  { name: 'Lixa', cost: 100, category: 'Acabamento' },
+  { name: 'Parafusos / ímãs', cost: 150, category: 'Acabamento' },
+  { name: 'Tinta / pintura', cost: 300, category: 'Acabamento' },
+  { name: 'Álcool isopropílico', cost: 50, category: 'Manutenção' },
+  { name: 'Manutenção', cost: 200, category: 'Manutenção' },
 ];
 
 /**
@@ -220,9 +220,12 @@ export async function ensureDefaultCostItems(): Promise<void> {
   for (const d of DEFAULT_COST_ITEMS) {
     const ex = byName.get(d.name.toLowerCase());
     if (!ex) {
-      toAdd.push({ id: uid(), name: d.name, costCentavos: d.cost, createdAt: now + i++ });
-    } else if ((ex.costCentavos || 0) === 0 && d.cost > 0) {
-      await db.costItems.update(ex.id, { costCentavos: d.cost });
+      toAdd.push({ id: uid(), name: d.name, costCentavos: d.cost, category: d.category, createdAt: now + i++ });
+    } else {
+      const patch: Partial<CostItem> = {};
+      if ((ex.costCentavos || 0) === 0 && d.cost > 0) patch.costCentavos = d.cost;
+      if (!ex.category) patch.category = d.category; // backfill categoria sem sobrescrever
+      if (Object.keys(patch).length) await db.costItems.update(ex.id, patch);
     }
   }
   if (toAdd.length) await db.costItems.bulkPut(toAdd);

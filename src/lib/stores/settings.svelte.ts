@@ -25,7 +25,7 @@ export function defaultConfig(): AppConfig {
       'Cliente': '#22c55e',
       'Protótipo': '#8b5cf6',
     },
-    costCategories: ['Embalagem', 'Frete', 'Acabamento', 'Outros'],
+    costCategories: ['Embalagem', 'Acabamento', 'Manutenção', 'Frete', 'Outros'],
   };
 }
 
@@ -63,7 +63,16 @@ function normalize(input: unknown): AppConfig {
         : Array.isArray(parsed.tags)
           ? {}
           : base.tagColors,
-    costCategories: Array.isArray(parsed.costCategories) ? parsed.costCategories : base.costCategories,
+    costCategories: (() => {
+      const cats = Array.isArray(parsed.costCategories)
+        ? [...parsed.costCategories]
+        : [...base.costCategories];
+      // garante as categorias padrão presentes (pré-cadastradas)
+      for (const c of base.costCategories) {
+        if (!cats.some((x) => x.toLowerCase() === c.toLowerCase())) cats.push(c);
+      }
+      return cats;
+    })(),
   };
 }
 
