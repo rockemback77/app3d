@@ -692,10 +692,10 @@
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3">{@render head(CalcIcon, 'from-sky-500 to-violet-500', 'Resultado')}</div>
     <button
-      class="w-full rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 py-3 text-base font-bold text-white shadow-md shadow-sky-500/25 transition-transform active:scale-95"
+      class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-sky-500 bg-sky-500/10 px-3 py-3 text-base font-bold uppercase tracking-wide text-sky-300 transition-colors hover:bg-sky-500/20 active:scale-95"
       onclick={calcular}
     >
-      Calcular
+      <CalcIcon size={20} /> Calcular
     </button>
     {#if calcMsg}<p class="mt-2 text-center text-sm font-medium text-amber-600 dark:text-amber-400">{calcMsg}</p>{/if}
 
