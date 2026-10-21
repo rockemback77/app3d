@@ -510,7 +510,7 @@
                   value={fui[i].brand}
                   onchange={(e) => onPickBrand(i, (e.target as HTMLSelectElement).value)}
                 >
-                  <option value="" disabled>Marca</option>
+                  <option value="" disabled>Selecione a marca</option>
                   {#each brands as b (b)}<option value={b}>{b}</option>{/each}
                 </select>
                 <select
