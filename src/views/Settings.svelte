@@ -154,14 +154,33 @@
   <p class="px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Dados</p>
 
   <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
-    {@render secao(Cloud, 'from-sky-500 to-cyan-500', 'Nuvem', 'Sincronize entre aparelhos')}
-    <div class="mb-3 flex gap-2">
+    <div class="mb-3 flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-md">
+          <Cloud size={20} />
+        </span>
+        <div class="min-w-0">
+          <h2 class="font-semibold leading-tight text-slate-100">Nuvem</h2>
+          <p class="text-xs text-slate-400">Sincronize entre aparelhos</p>
+        </div>
+      </div>
+      <span
+        class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {syncState.status === 'synced'
+          ? 'bg-emerald-500/20 text-emerald-300'
+          : syncState.status === 'syncing'
+            ? 'bg-sky-500/20 text-sky-300'
+            : syncState.status === 'error'
+              ? 'bg-red-500/20 text-red-300'
+              : 'bg-slate-700 text-slate-400'}"
+      >
+        {#if syncState.status === 'syncing'}Sincronizando…{:else if syncState.status === 'synced'}Sincronizado ✓{:else if syncState.status === 'error'}Erro{:else}—{/if}
+      </span>
+    </div>
+    <div class="flex gap-2">
       <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => pull()}>Baixar</button>
       <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => push()}>Enviar</button>
     </div>
-    <span class="text-xs text-slate-500">
-      {#if syncState.status === 'syncing'}Sincronizando…{:else if syncState.status === 'synced'}Sincronizado ✓{:else if syncState.status === 'error'}Erro: {syncState.error}{:else}—{/if}
-    </span>
+    {#if syncState.status === 'error'}<p class="mt-2 text-xs text-red-400">{syncState.error}</p>{/if}
   </div>
 
   <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
