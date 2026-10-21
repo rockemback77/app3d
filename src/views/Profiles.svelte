@@ -27,6 +27,15 @@
     customCor = false;
   }
 
+  // marca: usar uma já cadastrada (select) ou digitar manual
+  let marcaMode = $state<'cadastrada' | 'manual'>('cadastrada');
+  function setMarcaMode(m: 'cadastrada' | 'manual') {
+    marcaMode = m;
+    if (m === 'cadastrada' && editing && marcas.length && !marcas.includes(editing.brand ?? '')) {
+      editing.brand = marcas[0];
+    }
+  }
+
   const filaments = liveQuery(() => listFilaments());
 
   // agrupa por marca (a lista já vem ordenada por marca)
@@ -64,13 +73,23 @@
   let editing = $state<Partial<FilamentProfile> | null>(null);
 
   function novo() {
-    editing = { name: '', type: 'PLA', color: '#3b82f6', colorLabel: 'Azul', brand: '', pricePerKgCentavos: 0 };
+    const temMarcas = marcas.length > 0;
+    editing = {
+      name: '',
+      type: 'PLA',
+      color: '#3b82f6',
+      colorLabel: 'Azul',
+      brand: temMarcas ? marcas[0] : '',
+      pricePerKgCentavos: 0,
+    };
     customCor = false;
+    marcaMode = temMarcas ? 'cadastrada' : 'manual';
   }
 
   function editar(f: FilamentProfile) {
     editing = { ...f };
     customCor = !PRESET_COLORS.some((c) => c.hex.toLowerCase() === (f.color ?? '').toLowerCase());
+    marcaMode = f.brand && marcas.includes(f.brand) ? 'cadastrada' : 'manual';
   }
 
   async function salvar() {
@@ -109,9 +128,35 @@
     <div class="glass p-4 ring-1 ring-sky-300/60 dark:ring-sky-500/40">
       <h2 class="mb-3 font-semibold">{editing.id ? 'Editar' : 'Novo'} filamento</h2>
       <div class="space-y-3">
+        <div class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marca</span>
+          <div class="mb-2 flex gap-2">
+            <button
+              type="button"
+              class="flex-1 rounded-lg py-1.5 text-sm font-medium disabled:opacity-40 {marcaMode === 'cadastrada' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+              disabled={!marcas.length}
+              onclick={() => setMarcaMode('cadastrada')}
+            >Já cadastrada</button>
+            <button
+              type="button"
+              class="flex-1 rounded-lg py-1.5 text-sm font-medium {marcaMode === 'manual' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+              onclick={() => setMarcaMode('manual')}
+            >Manual</button>
+          </div>
+          {#if marcaMode === 'cadastrada' && marcas.length}
+            <select class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand}>
+              {#each marcas as m (m)}<option value={m}>{m}</option>{/each}
+            </select>
+          {:else}
+            <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" maxlength="40" list="marcas-cadastradas" />
+            <datalist id="marcas-cadastradas">
+              {#each marcas as m (m)}<option value={m}></option>{/each}
+            </datalist>
+          {/if}
+        </div>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul Voolt" maxlength="60" />
+          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul" maxlength="60" />
         </label>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tipo</span>
@@ -138,20 +183,13 @@
               onclick={() => (customCor = true)}
             >Personalizada</button>
           </div>
-          {#if customCor}
-            <div class="mt-2 flex items-center gap-2">
-              <input type="color" class="h-10 w-12 rounded border border-slate-300 dark:border-slate-600" bind:value={editing.color} />
-              <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="Nome da cor" maxlength="30" />
-            </div>
-          {/if}
+          <div class="mt-2 flex items-center gap-2">
+            {#if customCor}
+              <input type="color" class="h-10 w-12 shrink-0 rounded border border-slate-300 dark:border-slate-600" bind:value={editing.color} />
+            {/if}
+            <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="Nome da cor" maxlength="30" />
+          </div>
         </div>
-        <label class="block">
-          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marca (opcional)</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.brand} placeholder="Ex: Voolt, 3D Lab" maxlength="40" list="marcas-cadastradas" />
-          <datalist id="marcas-cadastradas">
-            {#each marcas as m (m)}<option value={m}></option>{/each}
-          </datalist>
-        </label>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Preço por kg *</span>
           <CurrencyInput bind:value={editing.pricePerKgCentavos} />
