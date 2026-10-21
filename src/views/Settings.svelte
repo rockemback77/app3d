@@ -122,9 +122,7 @@
         <Sparkles size={24} />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="font-bold text-slate-100">
-          {assinaturaAtiva ? 'Assinatura ativa' : 'Assinatura inativa'}
-        </p>
+        <p class="font-bold text-slate-100">Assinatura Pro</p>
         <p class="truncate text-xs text-slate-400">
           {#if assinaturaAtiva && vencimento}
             Válida até {vencimento}
