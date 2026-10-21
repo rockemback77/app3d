@@ -62,28 +62,23 @@
 
   const curF = $derived(sigFilaments());
   const curL = $derived(sigLabor());
-  const curM = $derived(sigMisc());
   const curP = $derived(sigPrice());
   const curAll = $derived(sigAll());
 
   let okF = $state(false);
   let okL = $state(false);
-  let okM = $state(false);
   let okP = $state(false);
   let confF = $state('');
   let confL = $state('');
-  let confM = $state('');
   let confP = $state('');
 
   // editar uma seção derruba a confirmação dela
   $effect(() => { if (okF && curF !== confF) okF = false; });
   $effect(() => { if (okL && curL !== confL) okL = false; });
-  $effect(() => { if (okM && curM !== confM) okM = false; });
   $effect(() => { if (okP && curP !== confP) okP = false; });
 
   function toggleF() { okF = !okF; if (okF) confF = sigFilaments(); }
   function toggleL() { okL = !okL; if (okL) confL = sigLabor(); }
-  function toggleM() { okM = !okM; if (okM) confM = sigMisc(); }
   function toggleP() { okP = !okP; if (okP) confP = sigPrice(); }
 
   // ---- resultado (só após clicar Calcular) ----
@@ -137,8 +132,8 @@
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
     // ao editar, confirma tudo e já mostra o resultado salvo
-    confF = sigFilaments(); confL = sigLabor(); confM = sigMisc(); confP = sigPrice();
-    okF = okL = okM = okP = true;
+    confF = sigFilaments(); confL = sigLabor(); confP = sigPrice();
+    okF = okL = okP = true;
     result = clone(rec.breakdown);
     resultSig = sigAll();
     calcMsg = '';
@@ -162,7 +157,7 @@
     saveLabel = '';
     saveTags = '';
     editingId = null;
-    okF = okL = okM = okP = false;
+    okF = okL = okP = false;
     result = null;
     calcMsg = '';
     savedMsg = '';
@@ -450,12 +445,9 @@
 
   <!-- Custos avulsos -->
   <section class="glass p-4">
-    <div class="mb-3 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-1.5">
-        <h2 class="font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
-        <span class="text-xs text-slate-400">(opcional)</span>
-      </div>
-      {@render okToggle(okM, toggleM)}
+    <div class="mb-3 flex items-center gap-1.5">
+      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
+      <span class="text-xs text-slate-400">(opcional)</span>
     </div>
     <div class="space-y-3">
       {#each job.misc as m, i (i)}
