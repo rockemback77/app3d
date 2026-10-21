@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Check } from 'lucide-svelte';
+  import { Check, Spool, Clock, Receipt, DollarSign, Package, Calculator as CalcIcon, type Icon } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import { settings } from '../lib/stores/settings.svelte';
@@ -277,9 +277,18 @@
   </button>
 {/snippet}
 
+{#snippet head(IconC: typeof Icon, grad: string, title: string)}
+  <div class="flex items-center gap-2.5">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {grad} text-white shadow-md">
+      <IconC size={18} />
+    </span>
+    <h2 class="font-semibold text-slate-100">{title}</h2>
+  </div>
+{/snippet}
+
 <div class="space-y-4 p-4 pb-24">
   <div class="flex items-center justify-between gap-2">
-    <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular valor da impressão'}</h1>
+    <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular custo da impressão'}</h1>
     {#if editingId}
       <button class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300" onclick={resetCalc}>
         Novo cálculo
@@ -293,9 +302,10 @@
   {/if}
 
   <!-- Nome da peça -->
-  <section class="glass p-4">
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3">{@render head(Package, 'from-sky-500 to-cyan-500', 'Peça')}</div>
     <label class="block">
-      <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Nome da peça</span>
+      <span class="mb-1 block text-sm font-semibold text-sky-400">Nome da peça</span>
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         placeholder="Ex: Suporte de fone"
@@ -332,9 +342,9 @@
   </section>
 
   <!-- Filamentos -->
-  <section class="glass p-4">
-    <div class="mb-2 flex items-center justify-between gap-2">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Filamentos</h2>
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      {@render head(Spool, 'from-violet-500 to-purple-500', 'Filamentos')}
       {@render okToggle(okF, toggleF)}
     </div>
     <div class="mb-3">
@@ -406,9 +416,9 @@
   </section>
 
   <!-- Tempo + mão de obra -->
-  <section class="glass p-4">
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Tempo & mão de obra</h2>
+      {@render head(Clock, 'from-amber-500 to-orange-500', 'Tempo & mão de obra')}
       {@render okToggle(okL, toggleL)}
     </div>
     <div class="mb-3">
@@ -444,10 +454,10 @@
   </section>
 
   <!-- Custos avulsos -->
-  <section class="glass p-4">
-    <div class="mb-3 flex items-center gap-1.5">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Custos avulsos</h2>
-      <span class="text-xs text-slate-400">(opcional)</span>
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      {@render head(Receipt, 'from-rose-500 to-pink-500', 'Custos avulsos')}
+      <span class="text-xs text-slate-400">opcional</span>
     </div>
     <div class="space-y-3">
       {#each job.misc as m, i (i)}
@@ -487,9 +497,9 @@
   </section>
 
   <!-- Preço de venda -->
-  <section class="glass p-4">
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
-      <h2 class="font-semibold text-sky-600 dark:text-sky-400">Preço de venda</h2>
+      {@render head(DollarSign, 'from-emerald-500 to-teal-500', 'Preço de venda')}
       {@render okToggle(okP, toggleP)}
     </div>
     <div class="mb-3 flex gap-2">
@@ -525,7 +535,8 @@
   </section>
 
   <!-- Ações: calcular + cadastrar -->
-  <section class="glass p-4">
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3">{@render head(CalcIcon, 'from-sky-500 to-violet-500', 'Resultado')}</div>
     <button
       class="w-full rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 py-3 text-base font-bold text-white shadow-md shadow-sky-500/25 transition-transform active:scale-95"
       onclick={calcular}
