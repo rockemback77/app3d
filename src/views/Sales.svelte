@@ -147,23 +147,27 @@
     anoSel === 'todos' ? grupos : grupos.filter((g) => g.key.slice(0, 4) === anoSel)
   );
 
-  // ---- gráfico ----
-  let mesesGrafico = $state(6);
+  // ---- gráfico (por ano) ----
+  let anoGrafico = $state<string>(String(new Date().getFullYear()));
+  // se o ano selecionado não tiver dados, cai para o ano mais recente com lançamentos
+  $effect(() => {
+    if (anos.length && !anos.includes(anoGrafico)) anoGrafico = anos[0];
+  });
 
   let chart = $derived.by(() => {
-    const now = new Date();
-    const keys: string[] = [];
-    for (let i = mesesGrafico - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-    }
+    const y = Number(anoGrafico);
     const byKey = new Map(grupos.map((g) => [g.key, g]));
-    const bars = keys.map((k) => ({
-      key: k,
-      label: monthLabel(k),
-      receita: byKey.get(k)?.receita ?? 0,
-      despesa: byKey.get(k)?.despesa ?? 0,
-    }));
+    const bars = [];
+    for (let m = 1; m <= 12; m++) {
+      const k = `${y}-${String(m).padStart(2, '0')}`;
+      const g = byKey.get(k);
+      bars.push({
+        key: k,
+        label: monthLabel(k),
+        receita: g?.receita ?? 0,
+        despesa: g?.despesa ?? 0,
+      });
+    }
     const max = Math.max(1, ...bars.map((b) => Math.max(b.receita, b.despesa)));
     return { bars, max };
   });
@@ -314,15 +318,13 @@
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
       {@render head(BarChart3, 'from-emerald-500 to-teal-500', 'Gráfico')}
-      <label class="flex items-center gap-1.5 text-xs text-slate-500">
-        Últimos
-        <select class="rounded border border-slate-600 bg-slate-900 px-2 py-1" bind:value={mesesGrafico}>
-          {#each Array.from({ length: 12 }, (_, i) => i + 1) as n (n)}
-            <option value={n}>{n}</option>
-          {/each}
-        </select>
-        meses
-      </label>
+      <select class="shrink-0 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm" bind:value={anoGrafico}>
+        {#if anos.length}
+          {#each anos as a (a)}<option value={a}>{a}</option>{/each}
+        {:else}
+          <option value={anoGrafico}>{anoGrafico}</option>
+        {/if}
+      </select>
     </div>
 
     <div class="flex items-end gap-2 overflow-x-auto" style="height: 170px">
