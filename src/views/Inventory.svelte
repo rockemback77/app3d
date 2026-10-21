@@ -1,5 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
+  import { Warehouse } from 'lucide-svelte';
   import {
     listInventory,
     saveInventory,
@@ -63,7 +64,10 @@
 
 <div class="space-y-4 p-4 pb-24">
   <div class="flex items-center justify-between">
-    <h1 class="text-xl font-bold">Inventário</h1>
+    <h1 class="flex items-center gap-2.5 text-xl font-bold">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-md"><Warehouse size={18} /></span>
+      Inventário
+    </h1>
     <button class="rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
       + Novo
     </button>

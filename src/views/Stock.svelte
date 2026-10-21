@@ -1,5 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
+  import { Package } from 'lucide-svelte';
   import { listHistory, listStock, setStock } from '../lib/db';
   import { formatBRL } from '../lib/money';
 
@@ -41,7 +42,10 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <h1 class="text-xl font-bold">Estoque de peças</h1>
+  <h1 class="flex items-center gap-2.5 text-xl font-bold">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md"><Package size={18} /></span>
+    Estoque de peças
+  </h1>
   <p class="text-sm text-slate-500">Informe quantas unidades de cada peça você tem em estoque.</p>
 
   <!-- Resumo do lucro possível -->

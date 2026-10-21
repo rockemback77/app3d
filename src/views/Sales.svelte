@@ -1,5 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
+  import { ArrowLeftRight } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import {
@@ -158,7 +159,10 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <h1 class="text-xl font-bold">Receita × Despesas</h1>
+  <h1 class="flex items-center gap-2.5 text-xl font-bold">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md"><ArrowLeftRight size={18} /></span>
+    Receita × Despesas
+  </h1>
 
   <!-- Formulário -->
   <section class="glass p-4">
