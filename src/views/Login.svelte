@@ -58,7 +58,7 @@
 <div class="flex min-h-screen flex-col items-center justify-center p-6">
   <div class="w-full max-w-sm">
     <div class="mb-8 text-center">
-      <div class="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-500 to-sky-500 text-4xl shadow-lg shadow-violet-500/30">🖨️</div>
+      <img src="./icon-192.png" alt="App 3D" class="mx-auto mb-3 h-20 w-20 rounded-3xl shadow-lg shadow-violet-500/30" />
       <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">App 3D</h1>
       <p class="mt-1 text-sm text-slate-500">
         {modo === 'login' ? 'Entre para acessar seus dados' : 'Crie sua conta'}
