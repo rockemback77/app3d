@@ -227,8 +227,15 @@
       />
     </label>
     <div class="mt-3">
-      <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Tags</span>
-      <p class="mb-2 text-xs text-slate-400">As tags são cadastradas na aba Configurações.</p>
+      <div class="mb-2 flex items-center gap-1.5">
+        <span class="text-sm font-semibold text-sky-600 dark:text-sky-400">Tags</span>
+        <button
+          type="button"
+          class="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-sky-100 text-[10px] font-bold text-sky-600 dark:bg-sky-500/20 dark:text-sky-300"
+          aria-label="As tags são cadastradas na aba Configurações."
+          title="As tags são cadastradas na aba Configurações."
+        >i</button>
+      </div>
       {#if settings.tags.length}
         <div class="flex flex-wrap gap-2">
           {#each settings.tags ?? [] as tag (tag)}
