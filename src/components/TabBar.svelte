@@ -7,7 +7,7 @@
     { id: 'costs', label: 'Custos', icon: '🧾' },
     { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
     { id: 'history', label: 'Peças cadastradas', icon: '🧩' },
-    { id: 'stock', label: 'Estoque', icon: '📦' },
+    { id: 'stock', label: 'Estoque de peças', icon: '📦' },
     { id: 'settings', label: 'Configurações', icon: '⚙️' },
   ];
 </script>

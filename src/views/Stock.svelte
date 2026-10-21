@@ -41,7 +41,7 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <h1 class="text-xl font-bold">Estoque</h1>
+  <h1 class="text-xl font-bold">Estoque de peças</h1>
   <p class="text-sm text-slate-500">Informe quantas unidades de cada peça você tem em estoque.</p>
 
   <!-- Resumo do lucro possível -->

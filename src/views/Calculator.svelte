@@ -202,7 +202,7 @@
 
 <div class="space-y-4 p-4 pb-24">
   <div class="flex items-center justify-between gap-2">
-    <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular impressão'}</h1>
+    <h1 class="text-xl font-bold">{editingId ? 'Editar cálculo' : 'Calcular valor da impressão'}</h1>
     {#if editingId}
       <button class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300" onclick={resetCalc}>
         Novo cálculo
@@ -221,7 +221,7 @@
       <span class="mb-1 block text-sm font-semibold text-sky-600 dark:text-sky-400">Nome da peça</span>
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-        placeholder="Ex: suporte de fone"
+        placeholder="Ex: Suporte de fone"
         maxlength="60"
         bind:value={saveLabel}
       />

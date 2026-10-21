@@ -193,6 +193,32 @@
     {#if importMsg}<p class="mt-2 text-sm text-emerald-400">{importMsg}</p>{/if}
   </div>
 
+  <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    {@render secao(Tag, 'from-cyan-500 to-blue-500', 'Tags das peças', 'Opções que aparecem ao salvar uma peça')}
+    <div class="mb-3 flex gap-2">
+      <input
+        class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm"
+        placeholder="Nova tag"
+        maxlength="30"
+        bind:value={novaTag}
+        onkeydown={(e) => e.key === 'Enter' && adicionarTag()}
+      />
+      <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarTag}>Adicionar</button>
+    </div>
+    {#if settings.tags.length}
+      <div class="flex flex-wrap gap-2">
+        {#each settings.tags ?? [] as tag (tag)}
+          <span class="flex items-center gap-1.5 rounded-full bg-sky-900/50 py-1 pl-3 pr-1.5 text-xs font-medium text-sky-300">
+            {tag}
+            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-700 text-sky-200 hover:bg-sky-600" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
+          </span>
+        {/each}
+      </div>
+    {:else}
+      <p class="text-xs text-slate-500">Nenhuma tag cadastrada.</p>
+    {/if}
+  </div>
+
   <!-- ====== CÁLCULO ====== -->
   <p class="px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Cálculo</p>
 
@@ -318,31 +344,5 @@
       {/each}
       <button class="w-full rounded-lg border border-sky-500/40 bg-sky-500/10 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-500/20" onclick={addMarketplace}>+ Adicionar marketplace</button>
     </div>
-  </div>
-
-  <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
-    {@render secao(Tag, 'from-cyan-500 to-blue-500', 'Tags das peças', 'Opções que aparecem ao salvar uma peça')}
-    <div class="mb-3 flex gap-2">
-      <input
-        class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm"
-        placeholder="Nova tag"
-        maxlength="30"
-        bind:value={novaTag}
-        onkeydown={(e) => e.key === 'Enter' && adicionarTag()}
-      />
-      <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarTag}>Adicionar</button>
-    </div>
-    {#if settings.tags.length}
-      <div class="flex flex-wrap gap-2">
-        {#each settings.tags ?? [] as tag (tag)}
-          <span class="flex items-center gap-1.5 rounded-full bg-sky-900/50 py-1 pl-3 pr-1.5 text-xs font-medium text-sky-300">
-            {tag}
-            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-sky-700 text-sky-200 hover:bg-sky-600" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
-          </span>
-        {/each}
-      </div>
-    {:else}
-      <p class="text-xs text-slate-500">Nenhuma tag cadastrada.</p>
-    {/if}
   </div>
 </div>
