@@ -270,7 +270,7 @@
       <button class="w-full rounded-lg border border-sky-500/40 bg-sky-500/10 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-500/20" onclick={addWearPart}>+ Adicionar</button>
     </div>
     <div class="mt-3 rounded-lg bg-slate-900/40 p-3 text-xs">
-      <p class="mb-1.5 font-semibold text-slate-300">Como o desgaste é calculado</p>
+      <p class="mb-1.5 font-semibold text-slate-300">Como o desgaste é calculado?</p>
       <ul class="space-y-0.5 text-slate-400">
         {#each settings.wearParts ?? [] as part (part.id)}
           {#if part.lifespanHours > 0}
