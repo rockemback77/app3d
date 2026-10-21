@@ -5,7 +5,7 @@
   import NumberInput from '../components/NumberInput.svelte';
   import { settings } from '../lib/stores/settings.svelte';
   import { listFilaments, listCostItems, saveHistory, updateHistory, historyLabelExists } from '../lib/db';
-  import { editState } from '../lib/stores/ui.svelte';
+  import { ui, editState } from '../lib/stores/ui.svelte';
   import { computeBreakdown } from '../lib/engine/pricing';
   import { filamentCostCentavos } from '../lib/engine/costs';
   import type { JobInputs } from '../lib/engine/types';
@@ -261,7 +261,8 @@
       });
       savedMsg = 'Peça cadastrada ✓';
     }
-    setTimeout(() => (savedMsg = ''), 3500);
+    resetCalc();
+    ui.tab = 'history';
   }
 </script>
 
