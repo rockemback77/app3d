@@ -17,6 +17,7 @@ export interface CostItem {
   id: string;
   name: string; // ex: Embalagem, Frete, Etiqueta
   costCentavos: number;
+  category?: string; // categoria (cadastrada em Configurações)
   createdAt: number;
 }
 
@@ -182,6 +183,7 @@ export async function saveCostItem(
     id,
     name: c.name,
     costCentavos: c.costCentavos,
+    category: c.category,
     createdAt: existing?.createdAt ?? Date.now(),
   });
   return id;

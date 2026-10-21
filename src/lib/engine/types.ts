@@ -21,6 +21,7 @@ export interface AppConfig {
   marketplaces: MarketplacePreset[];
   tags: string[]; // tags pré-definidas para os projetos
   tagColors: Record<string, string>; // cor (hex) por nome de tag
+  costCategories: string[]; // categorias de custo (Outros custos)
 }
 
 export interface JobFilament {

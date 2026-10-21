@@ -10,6 +10,7 @@
     Sparkles,
     LogOut,
     Info,
+    Layers,
     type Icon,
   } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
@@ -26,6 +27,8 @@
     setTagColor,
     tagColor,
     DEFAULT_TAG_COLOR,
+    addCostCategory,
+    removeCostCategory,
   } from '../lib/stores/settings.svelte';
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
@@ -68,6 +71,15 @@
   function adicionarTag() {
     addTag(novaTag, novaTagCor);
     novaTag = '';
+  }
+
+  let novaCategoria = $state('');
+  function adicionarCategoria() {
+    addCostCategory(novaCategoria);
+    novaCategoria = '';
+  }
+  function removerCategoria(cat: string) {
+    if (confirm(`Excluir a categoria "${cat}"?`)) removeCostCategory(cat);
   }
   async function removerTag(tag: string) {
     const n = await countHistoryWithTag(tag);
@@ -239,6 +251,32 @@
       </div>
     {:else}
       <p class="text-xs text-slate-500">Nenhuma tag cadastrada.</p>
+    {/if}
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    {@render secao(Layers, 'from-indigo-500 to-blue-500', 'Categorias de custo', 'Agrupam os itens em Outros custos')}
+    <div class="mb-3 flex gap-2">
+      <input
+        class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm"
+        placeholder="Nova categoria"
+        maxlength="30"
+        bind:value={novaCategoria}
+        onkeydown={(e) => e.key === 'Enter' && adicionarCategoria()}
+      />
+      <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarCategoria}>Adicionar</button>
+    </div>
+    {#if settings.costCategories?.length}
+      <div class="flex flex-wrap gap-2">
+        {#each settings.costCategories ?? [] as cat (cat)}
+          <span class="flex items-center gap-1.5 rounded-full bg-slate-700 py-1 pl-3 pr-1.5 text-xs font-medium text-slate-200">
+            {cat}
+            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-black/20 hover:bg-black/40" aria-label="Remover {cat}" onclick={() => removerCategoria(cat)}>×</button>
+          </span>
+        {/each}
+      </div>
+    {:else}
+      <p class="text-xs text-slate-500">Nenhuma categoria cadastrada.</p>
     {/if}
   </div>
 

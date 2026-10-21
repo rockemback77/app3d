@@ -25,6 +25,7 @@ export function defaultConfig(): AppConfig {
       'Cliente': '#22c55e',
       'Protótipo': '#8b5cf6',
     },
+    costCategories: ['Embalagem', 'Frete', 'Acabamento', 'Outros'],
   };
 }
 
@@ -62,6 +63,7 @@ function normalize(input: unknown): AppConfig {
         : Array.isArray(parsed.tags)
           ? {}
           : base.tagColors,
+    costCategories: Array.isArray(parsed.costCategories) ? parsed.costCategories : base.costCategories,
   };
 }
 
@@ -155,4 +157,20 @@ export function setTagColor(name: string, color: string): void {
 /** Cor da tag (hex), com fallback padrão. */
 export function tagColor(name: string): string {
   return settings.tagColors?.[name] ?? DEFAULT_TAG_COLOR;
+}
+
+export function addCostCategory(name: string): void {
+  const t = name.trim();
+  if (!t) return;
+  if (!settings.costCategories) settings.costCategories = [];
+  if (!settings.costCategories.some((x: string) => x.toLowerCase() === t.toLowerCase())) {
+    settings.costCategories.push(t);
+    persistSettings();
+  }
+}
+
+export function removeCostCategory(name: string): void {
+  const i = settings.costCategories?.indexOf(name) ?? -1;
+  if (i >= 0) settings.costCategories.splice(i, 1);
+  persistSettings();
 }
