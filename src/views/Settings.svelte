@@ -26,6 +26,7 @@
     removeTag,
     setTagColor,
     tagColor,
+    renameTag,
     DEFAULT_TAG_COLOR,
     addCostCategory,
     removeCostCategory,
@@ -33,7 +34,8 @@
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
-  import { countHistoryWithTag, removeTagFromAllHistory } from '../lib/db';
+  import { liveQuery } from 'dexie';
+  import { countHistoryWithTag, removeTagFromAllHistory, renameTagInAllHistory, listHistory } from '../lib/db';
   import { auth, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
   import { subscription, isActive } from '../lib/stores/subscription.svelte';
@@ -66,11 +68,41 @@
   let wearHour = $derived(wearPerHourCentavos(settings));
 
   let showWatts = $state(false);
+  const historico = liveQuery(() => listHistory());
+  function tagCount(tag: string): number {
+    const t = tag.toLowerCase();
+    return ($historico ?? []).filter((r) => (r.tags ?? []).some((x) => x.toLowerCase() === t)).length;
+  }
+
   let novaTag = $state('');
   let novaTagCor = $state(DEFAULT_TAG_COLOR);
   function adicionarTag() {
     addTag(novaTag, novaTagCor);
     novaTag = '';
+  }
+
+  let editTag = $state<string | null>(null); // nome original em edição
+  let editTagVal = $state('');
+  function iniciarEdicaoTag(tag: string) {
+    editTag = tag;
+    editTagVal = tag;
+  }
+  function cancelarEdicaoTag() {
+    editTag = null;
+    editTagVal = '';
+  }
+  async function salvarEdicaoTag(oldName: string) {
+    const novo = editTagVal.trim();
+    if (!novo || novo === oldName) {
+      cancelarEdicaoTag();
+      return;
+    }
+    if (!renameTag(oldName, novo)) {
+      alert('Nome inválido ou já existe outra tag com esse nome.');
+      return;
+    }
+    await renameTagInAllHistory(oldName, novo);
+    cancelarEdicaoTag();
   }
 
   let novaCategoria = $state('');
@@ -228,14 +260,11 @@
       <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarTag}>Adicionar</button>
     </div>
     {#if settings.tags.length}
-      <div class="flex flex-wrap gap-2">
+      <div class="space-y-1.5">
         {#each settings.tags ?? [] as tag (tag)}
-          <span
-            class="flex items-center gap-1.5 rounded-full py-1 pl-1.5 pr-1.5 text-xs font-medium"
-            style="background:{tagColor(tag)}22;color:{tagColor(tag)}"
-          >
-            <label class="relative flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center" title="Mudar cor">
-              <span class="h-3 w-3 rounded-full" style="background:{tagColor(tag)}"></span>
+          <div class="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/40 px-2 py-1.5">
+            <label class="relative flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center" title="Mudar cor">
+              <span class="h-3.5 w-3.5 rounded-full" style="background:{tagColor(tag)}"></span>
               <input
                 type="color"
                 value={tagColor(tag)}
@@ -244,9 +273,22 @@
                 aria-label="Cor da tag {tag}"
               />
             </label>
-            {tag}
-            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-black/20 hover:bg-black/40" aria-label="Remover {tag}" onclick={() => removerTag(tag)}>×</button>
-          </span>
+            {#if editTag === tag}
+              <input
+                class="min-w-0 flex-1 rounded border border-slate-600 bg-slate-900 px-2 py-1 text-sm"
+                maxlength="30"
+                bind:value={editTagVal}
+                onkeydown={(e) => e.key === 'Enter' && salvarEdicaoTag(tag)}
+              />
+              <button class="shrink-0 text-sm font-medium text-emerald-400" onclick={() => salvarEdicaoTag(tag)}>Salvar</button>
+              <button class="shrink-0 text-sm text-slate-400" onclick={cancelarEdicaoTag}>Cancelar</button>
+            {:else}
+              <span class="min-w-0 flex-1 truncate text-sm font-medium" style="color:{tagColor(tag)}">{tag}</span>
+              <span class="shrink-0 text-xs text-slate-400">{tagCount(tag)} {tagCount(tag) === 1 ? 'projeto' : 'projetos'}</span>
+              <button class="shrink-0 text-sm text-sky-400" onclick={() => iniciarEdicaoTag(tag)}>Editar</button>
+              <button class="shrink-0 text-sm text-red-400" onclick={() => removerTag(tag)}>Excluir</button>
+            {/if}
+          </div>
         {/each}
       </div>
     {:else}

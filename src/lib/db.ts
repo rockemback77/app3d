@@ -295,6 +295,23 @@ export async function countHistoryWithTag(tag: string): Promise<number> {
   return all.filter((r) => (r.tags ?? []).some((x) => x.toLowerCase() === t)).length;
 }
 
+/** Renomeia uma tag em todas as peças que a possuem. Retorna quantas foram alteradas. */
+export async function renameTagInAllHistory(oldName: string, newName: string): Promise<number> {
+  const o = oldName.toLowerCase();
+  const all = await db.history.toArray();
+  const afetadas = all.filter((r) => (r.tags ?? []).some((x) => x.toLowerCase() === o));
+  for (const rec of afetadas) {
+    const set: string[] = [];
+    for (const x of rec.tags ?? []) {
+      const v = x.toLowerCase() === o ? newName : x;
+      if (!set.some((s) => s.toLowerCase() === v.toLowerCase())) set.push(v);
+    }
+    rec.tags = set;
+    await db.history.put(rec);
+  }
+  return afetadas.length;
+}
+
 /** Remove uma tag de todas as peças que a possuem. Retorna quantas foram alteradas. */
 export async function removeTagFromAllHistory(tag: string): Promise<number> {
   const t = tag.toLowerCase();

@@ -154,6 +154,23 @@ export function setTagColor(name: string, color: string): void {
   persistSettings();
 }
 
+/** Renomeia uma tag na config (não altera o histórico). Retorna false se vazio/colisão. */
+export function renameTag(oldName: string, newName: string): boolean {
+  const n = newName.trim();
+  if (!n) return false;
+  const i = settings.tags.findIndex((x: string) => x === oldName);
+  if (i < 0) return false;
+  if (settings.tags.some((x: string, j: number) => j !== i && x.toLowerCase() === n.toLowerCase())) return false;
+  settings.tags[i] = n;
+  if (settings.tagColors) {
+    const c = settings.tagColors[oldName];
+    delete settings.tagColors[oldName];
+    settings.tagColors[n] = c ?? DEFAULT_TAG_COLOR;
+  }
+  persistSettings();
+  return true;
+}
+
 /** Cor da tag (hex), com fallback padrão. */
 export function tagColor(name: string): string {
   return settings.tagColors?.[name] ?? DEFAULT_TAG_COLOR;
