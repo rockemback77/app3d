@@ -380,7 +380,7 @@
             >
               <option value="">— Manual —</option>
               {#each $filaments ?? [] as p (p.id)}
-                <option value={p.id}>{p.name}</option>
+                <option value={p.id}>{p.name}{p.brand?.trim() ? ` · ${p.brand.trim()}` : ''}</option>
               {/each}
             </select>
           </div>

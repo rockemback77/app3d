@@ -6,6 +6,26 @@
 
   const TYPES = ['PLA', 'PETG', 'ABS', 'TPU', 'Resina', 'Outro'];
 
+  const PRESET_COLORS = [
+    { label: 'Preto', hex: '#1f2937' },
+    { label: 'Branco', hex: '#f8fafc' },
+    { label: 'Cinza', hex: '#9ca3af' },
+    { label: 'Vermelho', hex: '#ef4444' },
+    { label: 'Laranja', hex: '#f97316' },
+    { label: 'Amarelo', hex: '#facc15' },
+    { label: 'Verde', hex: '#22c55e' },
+    { label: 'Azul', hex: '#3b82f6' },
+    { label: 'Roxo', hex: '#8b5cf6' },
+    { label: 'Rosa', hex: '#ec4899' },
+  ];
+  let customCor = $state(false);
+  function pickPreset(c: { label: string; hex: string }) {
+    if (!editing) return;
+    editing.color = c.hex;
+    editing.colorLabel = c.label;
+    customCor = false;
+  }
+
   const filaments = liveQuery(() => listFilaments());
 
   // agrupa por marca (a lista já vem ordenada por marca)
@@ -43,11 +63,13 @@
   let editing = $state<Partial<FilamentProfile> | null>(null);
 
   function novo() {
-    editing = { name: '', type: 'PLA', color: '#38bdf8', colorLabel: '', brand: '', pricePerKgCentavos: 0 };
+    editing = { name: '', type: 'PLA', color: '#3b82f6', colorLabel: 'Azul', brand: '', pricePerKgCentavos: 0 };
+    customCor = false;
   }
 
   function editar(f: FilamentProfile) {
     editing = { ...f };
+    customCor = !PRESET_COLORS.some((c) => c.hex.toLowerCase() === (f.color ?? '').toLowerCase());
   }
 
   async function salvar() {
@@ -87,20 +109,37 @@
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
           <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul Voolt" maxlength="60" />
         </label>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="block">
-            <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tipo</span>
-            <select class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.type}>
-              {#each TYPES as t}<option value={t}>{t}</option>{/each}
-            </select>
-          </label>
-          <label class="block">
-            <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Cor</span>
-            <div class="flex items-center gap-2">
+        <label class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tipo</span>
+          <select class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.type}>
+            {#each TYPES as t}<option value={t}>{t}</option>{/each}
+          </select>
+        </label>
+        <div class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Cor</span>
+          <div class="flex flex-wrap items-center gap-2">
+            {#each PRESET_COLORS as c (c.hex)}
+              <button
+                type="button"
+                title={c.label}
+                aria-label={c.label}
+                class="h-8 w-8 rounded-full ring-2 transition {!customCor && (editing.color ?? '').toLowerCase() === c.hex.toLowerCase() ? 'ring-sky-500' : 'ring-black/10 dark:ring-white/15'}"
+                style="background:{c.hex}"
+                onclick={() => pickPreset(c)}
+              ></button>
+            {/each}
+            <button
+              type="button"
+              class="flex h-8 items-center rounded-full px-3 text-xs font-medium ring-2 transition {customCor ? 'bg-sky-500 text-white ring-sky-500' : 'text-slate-600 ring-black/10 dark:text-slate-300 dark:ring-white/15'}"
+              onclick={() => (customCor = true)}
+            >Personalizada</button>
+          </div>
+          {#if customCor}
+            <div class="mt-2 flex items-center gap-2">
               <input type="color" class="h-10 w-12 rounded border border-slate-300 dark:border-slate-600" bind:value={editing.color} />
-              <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="rótulo" maxlength="30" />
+              <input class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm dark:border-slate-600 dark:bg-slate-900" bind:value={editing.colorLabel} placeholder="Nome da cor" maxlength="30" />
             </div>
-          </label>
+          {/if}
         </div>
         <label class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Marca (opcional)</span>
