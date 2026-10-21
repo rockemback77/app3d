@@ -518,7 +518,7 @@
                   value={f.profileId}
                   onchange={(e) => onPickProfile(i, (e.target as HTMLSelectElement).value)}
                 >
-                  <option value="">Filamento</option>
+                  <option value="">Selecione o filamento</option>
                   {#each filamentsOfBrand(fui[i].brand) as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
                 </select>
               </div>
