@@ -19,7 +19,7 @@
     { id: 'profiles', label: 'Filamentos', icon: Spool },
     { id: 'costs', label: 'Custos', icon: Receipt },
     { id: 'sales', label: 'Receita × Despesa', icon: ArrowLeftRight },
-    { id: 'history', label: 'Peças cadastradas', icon: Puzzle },
+    { id: 'history', label: 'Projetos', icon: Puzzle },
     { id: 'stock', label: 'Estoque de peças', icon: Package },
     { id: 'inventory', label: 'Inventário', icon: Warehouse },
     { id: 'settings', label: 'Configurações', icon: Settings },

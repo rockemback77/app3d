@@ -42,7 +42,7 @@
 <div class="space-y-3 p-4 pb-8">
   <h1 class="flex items-center gap-2.5 text-xl font-bold">
     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-md"><Puzzle size={18} /></span>
-    Peças cadastradas
+    Projetos
   </h1>
 
   {#if $history && $history.length > 0}

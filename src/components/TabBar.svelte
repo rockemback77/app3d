@@ -6,7 +6,7 @@
     { id: 'profiles', label: 'Filamentos', icon: '🧵' },
     { id: 'costs', label: 'Custos', icon: '🧾' },
     { id: 'sales', label: 'Receita × Despesa', icon: '💰' },
-    { id: 'history', label: 'Peças cadastradas', icon: '🧩' },
+    { id: 'history', label: 'Projetos', icon: '🧩' },
     { id: 'stock', label: 'Estoque de peças', icon: '📦' },
     { id: 'settings', label: 'Configurações', icon: '⚙️' },
   ];
