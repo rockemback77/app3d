@@ -31,8 +31,14 @@ export function startAuth(onLogin: () => void, onLogout: () => void): void {
 }
 
 export async function signUp(email: string, password: string): Promise<string | null> {
-  const { error } = await supabase.auth.signUp({ email, password });
-  return error ? error.message : null;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return error.message;
+  // Com confirmação de email desligada, o Supabase ofusca email já existente:
+  // retorna sucesso com identities vazio (anti-enumeração). Detecta duplicata aqui.
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return 'already registered';
+  }
+  return null;
 }
 
 export async function signIn(email: string, password: string): Promise<string | null> {
