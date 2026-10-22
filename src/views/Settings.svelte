@@ -41,7 +41,14 @@
   import { countHistoryWithTag, removeTagFromAllHistory, renameTagInAllHistory, listHistory, listCostItems, countCostItemsWithCategory, renameCategoryInCostItems, clearCategoryInCostItems } from '../lib/db';
   import { auth, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
-  import { subscription, isActive } from '../lib/stores/subscription.svelte';
+  import {
+    subscription,
+    isActive,
+    isTrial,
+    daysLeft,
+    statusLabel,
+    cancelSubscription,
+  } from '../lib/stores/subscription.svelte';
   import { pwa, promptInstall } from '../lib/stores/pwa.svelte';
   import { askConfirm } from '../lib/stores/confirm.svelte';
 
@@ -53,6 +60,8 @@
   }
 
   const assinaturaAtiva = $derived(isActive());
+  const trial = $derived(isTrial());
+  const dias = $derived(daysLeft());
   const vencimento = $derived(
     subscription.periodEnd
       ? new Date(subscription.periodEnd).toLocaleDateString('pt-BR', {
@@ -62,6 +71,33 @@
         })
       : null
   );
+  // Só dá para cancelar uma assinatura paga de verdade (não trial, não inativa).
+  const podeCancelar = $derived(assinaturaAtiva && !trial);
+  const badgeCor = $derived(
+    assinaturaAtiva
+      ? 'bg-emerald-500/20 text-emerald-300'
+      : subscription.status === 'past_due'
+        ? 'bg-amber-500/20 text-amber-300'
+        : 'bg-red-500/20 text-red-300'
+  );
+
+  let cancelando = $state(false);
+  let assinaturaErro = $state<string | null>(null);
+  async function cancelarAssinatura() {
+    const ok = await askConfirm({
+      title: 'Cancelar assinatura',
+      message:
+        'Tem certeza? Você mantém o acesso até o fim do período já pago; depois a calculadora será bloqueada.',
+      confirmLabel: 'Cancelar assinatura',
+      danger: true,
+    });
+    if (!ok) return;
+    cancelando = true;
+    assinaturaErro = null;
+    const msg = await cancelSubscription();
+    if (msg) assinaturaErro = msg;
+    cancelando = false;
+  }
 
   async function removerPeca(part: { id: string; name: string }) {
     if (await askConfirm({ title: 'Excluir peça de desgaste', message: `Excluir a peça de desgaste "${part.name || 'sem nome'}"?`, confirmLabel: 'Excluir', danger: true }))
@@ -223,21 +259,36 @@
       <div class="min-w-0 flex-1">
         <p class="font-bold text-slate-100">Assinatura Pro</p>
         <p class="truncate text-xs text-slate-400">
-          {#if assinaturaAtiva && vencimento}
+          {#if trial}
+            Teste grátis — {dias} {dias === 1 ? 'dia restante' : 'dias restantes'}
+          {:else if assinaturaAtiva && vencimento}
             Válida até {vencimento}
+          {:else if subscription.status === 'past_due'}
+            Pagamento pendente — regularize para manter o acesso
+          {:else if subscription.status === 'canceled'}
+            Cancelada{vencimento ? ` — acesso até ${vencimento}` : ''}
           {:else}
             Assine para manter o acesso
           {/if}
         </p>
       </div>
-      <span
-        class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {assinaturaAtiva
-          ? 'bg-emerald-500/20 text-emerald-300'
-          : 'bg-amber-500/20 text-amber-300'}"
-      >
-        {assinaturaAtiva ? 'Ativa' : 'Inativa'}
+      <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {badgeCor}">
+        {statusLabel()}
       </span>
     </div>
+
+    {#if podeCancelar}
+      <button
+        class="mt-3 w-full rounded-lg border border-white/10 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 disabled:opacity-50"
+        disabled={cancelando}
+        onclick={cancelarAssinatura}
+      >
+        {cancelando ? 'Cancelando…' : 'Cancelar assinatura'}
+      </button>
+    {/if}
+    {#if assinaturaErro}
+      <p class="mt-2 text-xs text-red-400">{assinaturaErro}</p>
+    {/if}
 
     {#if auth.user}
       <div class="mt-3 flex items-center justify-between border-t border-white/10 pt-3">

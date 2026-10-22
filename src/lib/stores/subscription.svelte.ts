@@ -64,6 +64,50 @@ export async function fetchSubscription(): Promise<void> {
   subscription.loading = false;
 }
 
+/** Está no período de teste grátis (ainda não assinou de fato). */
+export function isTrial(): boolean {
+  return subscription.status === 'trialing';
+}
+
+/** Dias restantes até periodEnd (0 se já passou ou sem data). */
+export function daysLeft(): number {
+  if (subscription.periodEnd == null) return 0;
+  const ms = subscription.periodEnd - Date.now();
+  return ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0;
+}
+
+/** Rótulo em pt-BR para o status atual. */
+export function statusLabel(): string {
+  switch (subscription.status) {
+    case 'active':
+      return 'Ativa';
+    case 'trialing':
+      return 'Período de teste';
+    case 'past_due':
+      return 'Pagamento pendente';
+    case 'canceled':
+      return 'Cancelada';
+    case 'inactive':
+      return 'Inativa';
+    default:
+      return 'Desconhecido';
+  }
+}
+
+/**
+ * Cancela a assinatura no Mercado Pago (via Edge Function). O acesso costuma
+ * valer até o fim do período já pago; o webhook atualiza o status depois.
+ * Retorna mensagem de erro, ou null em sucesso (e refaz o fetch).
+ */
+export async function cancelSubscription(): Promise<string | null> {
+  const { error } = await supabase.functions.invoke('mp-cancel-subscription', {
+    body: {},
+  });
+  if (error) return error.message ?? 'falha ao cancelar a assinatura';
+  await fetchSubscription();
+  return null;
+}
+
 /** Limpa ao sair. */
 export function resetSubscription(): void {
   subscription.loading = true;

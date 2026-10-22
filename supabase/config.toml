@@ -10,3 +10,7 @@ verify_jwt = false
 # Checkout: cria o preapproval. Protegida — só usuário logado (JWT válido).
 [functions.mp-create-subscription]
 verify_jwt = true
+
+# Cancelamento da assinatura. Protegida — só usuário logado.
+[functions.mp-cancel-subscription]
+verify_jwt = true

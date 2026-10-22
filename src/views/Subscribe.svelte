@@ -25,6 +25,26 @@
   }
 
   const offline = $derived(subscription.error != null);
+
+  // Título + texto conforme o motivo do bloqueio.
+  const titulo = $derived(
+    subscription.status === 'past_due'
+      ? 'Pagamento pendente'
+      : subscription.status === 'canceled'
+        ? 'Assinatura cancelada'
+        : subscription.status === 'trialing'
+          ? 'Seu período de teste acabou'
+          : 'Assinatura necessária'
+  );
+  const descricao = $derived(
+    subscription.status === 'past_due'
+      ? 'Houve um problema com o seu pagamento. Assine novamente para reativar o acesso.'
+      : subscription.status === 'canceled'
+        ? 'Sua assinatura foi cancelada. Assine novamente para liberar a calculadora e seus dados.'
+        : subscription.status === 'trialing'
+          ? 'O teste grátis terminou. Assine para continuar usando a calculadora e seus dados.'
+          : 'Sua assinatura não está ativa. Assine para liberar a calculadora e seus dados.'
+  );
 </script>
 
 <div class="flex min-h-screen flex-col items-center justify-center p-6">
@@ -41,10 +61,8 @@
           Este app exige internet para validar sua assinatura. Conecte-se e tente de novo.
         </p>
       {:else}
-        <p class="font-semibold text-slate-800 dark:text-slate-100">Assinatura necessária</p>
-        <p class="text-sm text-slate-500">
-          Sua assinatura não está ativa. Assine para liberar a calculadora e seus dados.
-        </p>
+        <p class="font-semibold text-slate-800 dark:text-slate-100">{titulo}</p>
+        <p class="text-sm text-slate-500">{descricao}</p>
         <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">R$ 19,90/mês</p>
         <button
           class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-2.5 font-semibold text-white shadow-md shadow-emerald-500/30 transition-transform active:scale-95 disabled:opacity-50"
