@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Package, Search } from 'lucide-svelte';
+  import { Package, Search, TrendingUp } from 'lucide-svelte';
   import { listHistory, listStock, setStock } from '../lib/db';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
@@ -30,9 +30,9 @@
     return m;
   });
 
-  function alterar(pieceId: string, delta: number) {
-    const atual = qtdDe.get(pieceId) ?? 0;
-    setStock(pieceId, Math.max(0, atual + delta));
+  function definir(pieceId: string, valor: string) {
+    const n = Math.max(0, Math.floor(Number(valor) || 0));
+    setStock(pieceId, n);
   }
 
   let totais = $derived.by(() => {
@@ -61,23 +61,36 @@
   <p class="text-sm text-slate-500">Informe quantas unidades de cada projeto você tem em estoque.</p>
 
   <!-- Resumo do lucro possível -->
-  <div class="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 p-4 text-white shadow-lg shadow-emerald-500/25">
-    <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Lucro possível com o estoque</p>
-    <p class="mt-1 text-3xl font-extrabold">{formatBRL(totais.lucro)}</p>
-    <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-      <div>
-        <p class="text-white/70">Itens</p>
-        <p class="font-bold">{totais.itens}</p>
-      </div>
-      <div>
-        <p class="text-white/70">Venda total</p>
-        <p class="font-bold">{formatBRL(totais.venda)}</p>
-      </div>
-      <div>
-        <p class="text-white/70">Custo total</p>
-        <p class="font-bold">{formatBRL(totais.custo)}</p>
+  <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25">
+    <div class="flex items-center gap-3 p-4">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+        <TrendingUp size={22} />
+      </span>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Lucro possível com o estoque</p>
+        <p class="text-3xl font-extrabold leading-tight">{formatBRL(totais.lucro)}</p>
       </div>
     </div>
+    {#if totais.itens > 0}
+      <div class="grid grid-cols-3 divide-x divide-white/15 border-t border-white/15 bg-black/10 text-center">
+        <div class="px-2 py-2.5">
+          <p class="text-[10px] uppercase tracking-wide text-white/70">Itens</p>
+          <p class="mt-0.5 font-bold">{totais.itens}</p>
+        </div>
+        <div class="px-2 py-2.5">
+          <p class="text-[10px] uppercase tracking-wide text-white/70">Venda total</p>
+          <p class="mt-0.5 font-bold">{formatBRL(totais.venda)}</p>
+        </div>
+        <div class="px-2 py-2.5">
+          <p class="text-[10px] uppercase tracking-wide text-white/70">Custo total</p>
+          <p class="mt-0.5 font-bold">{formatBRL(totais.custo)}</p>
+        </div>
+      </div>
+    {:else}
+      <p class="border-t border-white/15 bg-black/10 px-4 py-2.5 text-center text-xs text-white/80">
+        Adicione unidades abaixo para ver o lucro possível.
+      </p>
+    {/if}
   </div>
 
   {#if $pecas && $pecas.length > 0}
@@ -126,15 +139,16 @@
                 </div>
               {/if}
             </div>
-            <div class="flex shrink-0 items-center gap-2">
-              <button
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-lg font-bold text-slate-200 disabled:opacity-40"
-                disabled={q <= 0}
-                onclick={() => alterar(rec.id, -1)}>−</button>
-              <span class="w-8 text-center text-lg font-bold">{q}</span>
-              <button
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 text-lg font-bold text-white"
-                onclick={() => alterar(rec.id, 1)}>+</button>
+            <div class="flex shrink-0 items-center gap-1.5">
+              <input
+                type="number"
+                inputmode="numeric"
+                min="0"
+                class="w-20 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center text-base font-bold text-slate-100 outline-none focus:border-sky-500"
+                value={q}
+                onchange={(e) => definir(rec.id, (e.target as HTMLInputElement).value)}
+              />
+              <span class="text-xs text-slate-500">un.</span>
             </div>
           </div>
 

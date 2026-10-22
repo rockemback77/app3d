@@ -91,7 +91,7 @@
 
     {#each filtered as rec (rec.id)}
       {@const lucro = rec.breakdown.priceWithMarginCentavos - rec.breakdown.totalCostCentavos}
-      <div class="glass p-3">
+      <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-3">
         <div class="min-w-0">
           <p class="truncate font-medium">{rec.label}</p>
           <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
@@ -105,18 +105,18 @@
         </div>
 
         <!-- Custo, venda e lucro sempre visíveis -->
-        <div class="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
-            <p class="text-[10px] uppercase tracking-wide text-slate-400">Custo</p>
-            <p class="text-sm font-bold text-rose-600 dark:text-rose-400">{formatBRL(rec.breakdown.totalCostCentavos)}</p>
+        <div class="mt-2 grid grid-cols-3 gap-2 border-t border-slate-700 pt-2 text-center text-xs">
+          <div>
+            <p class="text-slate-500">Custo</p>
+            <p class="font-semibold text-red-400">{formatBRL(rec.breakdown.totalCostCentavos)}</p>
           </div>
-          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
-            <p class="text-[10px] uppercase tracking-wide text-slate-400">Venda</p>
-            <p class="text-sm font-bold text-sky-600 dark:text-sky-400">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
+          <div>
+            <p class="text-slate-500">Venda</p>
+            <p class="font-semibold text-slate-200">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
           </div>
-          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
-            <p class="text-[10px] uppercase tracking-wide text-slate-400">Lucro</p>
-            <p class="text-sm font-bold {lucro >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">{formatBRL(lucro)}</p>
+          <div>
+            <p class="text-slate-500">Lucro</p>
+            <p class="font-semibold {lucro >= 0 ? 'text-emerald-400' : 'text-red-400'}">{formatBRL(lucro)}</p>
           </div>
         </div>
 
