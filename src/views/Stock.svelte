@@ -30,9 +30,17 @@
     return m;
   });
 
-  function definir(pieceId: string, valor: string) {
-    const n = Math.max(0, Math.floor(Number(valor) || 0));
-    setStock(pieceId, n);
+  // rascunho por item: o que está digitado, antes de salvar
+  let draft = $state<Record<string, number>>({});
+
+  function valorAtual(id: string, salvo: number): number {
+    return draft[id] ?? salvo;
+  }
+  function editar(id: string, valor: string) {
+    draft[id] = Math.max(0, Math.floor(Number(valor) || 0));
+  }
+  function salvar(id: string, salvo: number) {
+    setStock(id, valorAtual(id, salvo));
   }
 
   let totais = $derived.by(() => {
@@ -144,11 +152,17 @@
                 type="number"
                 inputmode="numeric"
                 min="0"
-                class="w-20 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center text-base font-bold text-slate-100 outline-none focus:border-sky-500"
-                value={q}
-                onchange={(e) => definir(rec.id, (e.target as HTMLInputElement).value)}
+                class="w-16 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center text-base font-bold text-slate-100 outline-none focus:border-sky-500"
+                value={valorAtual(rec.id, q)}
+                oninput={(e) => editar(rec.id, (e.target as HTMLInputElement).value)}
               />
-              <span class="text-xs text-slate-500">un.</span>
+              <button
+                class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+                disabled={valorAtual(rec.id, q) === q}
+                onclick={() => salvar(rec.id, q)}
+              >
+                {valorAtual(rec.id, q) === q ? 'Salvo' : 'Salvar'}
+              </button>
             </div>
           </div>
 
