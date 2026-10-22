@@ -1,12 +1,13 @@
--- Colunas de provider na tabela subscriptions, usadas pelo webhook do Mercado Pago.
--- Idempotente: pode rodar várias vezes. A tabela já existe (criada por SQL cru);
--- aqui só garantimos que as colunas que o webhook grava existem.
+-- Colunas que faltam na tabela subscriptions para o webhook do Mercado Pago.
+-- Idempotente: pode rodar várias vezes.
+--
+-- A tabela já existe (criada por SQL cru) e já tem: user_id, status,
+-- current_period_end, provider, provider_customer_id, updated_at
+-- (verificado via PostgREST em 2026-10-22). Só estas duas faltavam:
 
 alter table public.subscriptions
-  add column if not exists provider text,
   add column if not exists provider_subscription_id text,
-  add column if not exists provider_payment_id text,
-  add column if not exists updated_at timestamptz not null default now();
+  add column if not exists provider_payment_id text;
 
 -- Busca rápida por assinatura do provider (reconciliação / suporte).
 create index if not exists subscriptions_provider_sub_idx

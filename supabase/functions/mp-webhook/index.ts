@@ -113,6 +113,7 @@ type Resolved = {
   periodEnd: string | null;
   subId: string;
   paymentId: string | null;
+  customerId: string | null;
 };
 
 /**
@@ -131,6 +132,7 @@ function fromPreapproval(pre: any, paymentId: string | null): Resolved | null {
     periodEnd: pre.next_payment_date ?? null,
     subId: String(pre.id),
     paymentId,
+    customerId: pre.payer_id != null ? String(pre.payer_id) : null,
   };
 }
 
@@ -183,6 +185,7 @@ Deno.serve(async (req) => {
         periodEnd: null,
         subId: pay?.metadata?.preapproval_id ? String(pay.metadata.preapproval_id) : '',
         paymentId: String(pay.id),
+        customerId: pay?.payer?.id != null ? String(pay.payer.id) : null,
       };
     }
   } else {
@@ -209,6 +212,7 @@ Deno.serve(async (req) => {
       provider: 'mercadopago',
       provider_subscription_id: resolved.subId || null,
       provider_payment_id: resolved.paymentId,
+      provider_customer_id: resolved.customerId,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },
