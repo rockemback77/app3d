@@ -71,7 +71,9 @@
     <span class="h-0.5 w-6 rounded-full bg-slate-700 dark:bg-slate-200"></span>
     <span class="h-0.5 w-6 rounded-full bg-slate-700 dark:bg-slate-200"></span>
   </button>
-  <span class="truncate text-lg font-bold">{titulo}</span>
+  <img src="./icone.png" alt="" class="h-8 w-8 shrink-0 object-contain" />
+  <span class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text font-extrabold text-transparent">Printaê</span>
+  <span class="ml-auto truncate text-sm font-semibold text-slate-500 dark:text-slate-400">{titulo}</span>
 </header>
 
 <!-- Drawer (mobile) -->
