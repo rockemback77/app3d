@@ -1,13 +1,27 @@
 <script lang="ts">
   import { subscription, fetchSubscription } from '../lib/stores/subscription.svelte';
   import { signOut } from '../lib/stores/auth.svelte';
+  import { startCheckout } from '../lib/stores/checkout';
 
   let busy = $state(false);
+  let assinando = $state(false);
+  let erro = $state<string | null>(null);
 
   async function atualizar() {
     busy = true;
     await fetchSubscription();
     busy = false;
+  }
+
+  async function assinar() {
+    assinando = true;
+    erro = null;
+    const msg = await startCheckout();
+    // Sucesso redireciona a página; se voltou mensagem, deu erro.
+    if (msg) {
+      erro = msg;
+      assinando = false;
+    }
   }
 
   const offline = $derived(subscription.error != null);
@@ -31,12 +45,17 @@
         <p class="text-sm text-slate-500">
           Sua assinatura não está ativa. Assine para liberar a calculadora e seus dados.
         </p>
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">R$ 19,90/mês</p>
         <button
           class="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-2.5 font-semibold text-white shadow-md shadow-emerald-500/30 transition-transform active:scale-95 disabled:opacity-50"
-          disabled
+          disabled={assinando}
+          onclick={assinar}
         >
-          Assinar (em breve)
+          {assinando ? 'Abrindo checkout…' : 'Assinar'}
         </button>
+        {#if erro}
+          <p class="text-sm text-rose-600">{erro}</p>
+        {/if}
       {/if}
 
       <button

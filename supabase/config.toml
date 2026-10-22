@@ -6,3 +6,7 @@ project_id = "xsfeemdgkdsfdommxztw"
 
 [functions.mp-webhook]
 verify_jwt = false
+
+# Checkout: cria o preapproval. Protegida — só usuário logado (JWT válido).
+[functions.mp-create-subscription]
+verify_jwt = true
