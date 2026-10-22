@@ -61,17 +61,28 @@ O `.env` com valores reais não é comitado (está no `.gitignore`).
 - `MP_ACCESS_TOKEN`: Mercado Pago > Suas integrações > sua aplicação > Credenciais de produção > Access Token.
 - `MP_WEBHOOK_SECRET`: Mercado Pago > sua aplicação > Webhooks > "Chave secreta" (clave secreta). É essa chave que assina o `x-signature`.
 
-## 3. Deploy
+## 3. Deploy (3 funções)
 
 ```bash
+# webhook: anônimo (o MP não manda JWT) -> --no-verify-jwt
 supabase functions deploy mp-webhook --no-verify-jwt
+
+# checkout e cancelamento: protegidas por JWT (só usuário logado)
+supabase functions deploy mp-create-subscription
+supabase functions deploy mp-cancel-subscription
 ```
 
-URL resultante:
+URL do webhook (a que vai no painel do MP):
 
 ```
 https://xsfeemdgkdsfdommxztw.supabase.co/functions/v1/mp-webhook
 ```
+
+> As outras duas são chamadas pelo app via `supabase.functions.invoke` — não
+> precisam ser cadastradas em lugar nenhum.
+>
+> Preço da assinatura: constante `PRICE_BRL` em
+> `supabase/functions/mp-create-subscription/index.ts` (hoje R$ 19,90).
 
 ## 4. Configurar no painel do Mercado Pago
 
