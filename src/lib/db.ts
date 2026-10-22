@@ -198,6 +198,37 @@ export async function deleteCostItem(id: string): Promise<void> {
   await db.costItems.delete(id);
 }
 
+/** Conta quantos custos usam uma categoria (case-insensitive). */
+export async function countCostItemsWithCategory(cat: string): Promise<number> {
+  const c = cat.toLowerCase();
+  const all = await db.costItems.toArray();
+  return all.filter((x) => (x.category ?? '').toLowerCase() === c).length;
+}
+
+/** Renomeia a categoria em todos os custos que a usam. Retorna quantos foram alterados. */
+export async function renameCategoryInCostItems(oldName: string, newName: string): Promise<number> {
+  const o = oldName.toLowerCase();
+  const all = await db.costItems.toArray();
+  const afetados = all.filter((x) => (x.category ?? '').toLowerCase() === o);
+  for (const it of afetados) {
+    it.category = newName;
+    await db.costItems.put(it);
+  }
+  return afetados.length;
+}
+
+/** Remove a categoria dos custos que a usam (deixa sem categoria). Retorna quantos foram alterados. */
+export async function clearCategoryInCostItems(cat: string): Promise<number> {
+  const c = cat.toLowerCase();
+  const all = await db.costItems.toArray();
+  const afetados = all.filter((x) => (x.category ?? '').toLowerCase() === c);
+  for (const it of afetados) {
+    it.category = undefined;
+    await db.costItems.put(it);
+  }
+  return afetados.length;
+}
+
 // custos padrão com valor sugerido (centavos) e categoria
 const DEFAULT_COST_ITEMS: { name: string; cost: number; category: string }[] = [
   { name: 'Embalagem', cost: 150, category: 'Embalagem' },

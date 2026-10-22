@@ -1,7 +1,8 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Warehouse } from 'lucide-svelte';
+  import { Warehouse, Trash2 } from 'lucide-svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
   import {
     listInventory,
     saveInventory,
@@ -35,7 +36,7 @@
   async function salvar() {
     if (!editing || !editing.name?.trim()) return;
     const acao = editing.id ? 'Atualizar' : 'Cadastrar';
-    if (!confirm(`${acao} "${editing.name.trim()}" no inventário?`)) return;
+    if (!(await askConfirm({ title: `${acao} item`, message: `${acao} "${editing.name.trim()}" no inventário?`, confirmLabel: acao }))) return;
     await saveInventory({
       id: editing.id,
       name: editing.name.trim(),
@@ -46,11 +47,20 @@
   }
 
   async function remover(it: InventoryItem) {
-    if (confirm(`Excluir "${it.name}" do inventário?`)) await deleteInventory(it.id);
+    if (await askConfirm({ title: 'Excluir item', message: `Excluir "${it.name}" do inventário?`, confirmLabel: 'Excluir', danger: true }))
+      await deleteInventory(it.id);
   }
 
-  function definir(it: InventoryItem, valor: string) {
-    setInventoryQty(it.id, Math.max(0, Math.floor(Number(valor) || 0)));
+  // rascunho por item: o que está digitado antes de salvar
+  let draft = $state<Record<string, number>>({});
+  function valorAtual(id: string, salvo: number): number {
+    return draft[id] ?? salvo;
+  }
+  function editarQtd(id: string, valor: string) {
+    draft[id] = Math.max(0, Math.floor(Number(valor) || 0));
+  }
+  function salvarQtd(id: string, salvo: number) {
+    setInventoryQty(id, valorAtual(id, salvo));
   }
 
   // agrupa por categoria, na ordem de CATEGORIES
@@ -124,12 +134,18 @@
                   inputmode="numeric"
                   min="0"
                   class="w-16 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center text-base font-bold text-slate-100 outline-none focus:border-sky-500"
-                  value={it.quantity}
-                  onchange={(e) => definir(it, (e.target as HTMLInputElement).value)}
+                  value={valorAtual(it.id, it.quantity)}
+                  oninput={(e) => editarQtd(it.id, (e.target as HTMLInputElement).value)}
                 />
-                <span class="text-xs text-slate-500">un.</span>
+                <button
+                  class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+                  disabled={valorAtual(it.id, it.quantity) === it.quantity}
+                  onclick={() => salvarQtd(it.id, it.quantity)}
+                >
+                  {valorAtual(it.id, it.quantity) === it.quantity ? 'Salvo' : 'Salvar'}
+                </button>
               </div>
-              <button class="shrink-0 rounded-lg bg-red-500/20 px-2.5 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => remover(it)}>Excluir</button>
+              <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir item" title="Excluir" onclick={() => remover(it)}><Trash2 size={16} /></button>
             </div>
           {/each}
         </div>

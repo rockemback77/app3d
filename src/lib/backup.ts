@@ -51,15 +51,17 @@ export async function exportBackup(): Promise<void> {
 export async function importBackup(file: File): Promise<{ filaments: number; history: number }> {
   const text = await file.text();
   const data = JSON.parse(text) as BackupFile;
-  if (data.app !== 'calculadora-custo-3d') {
+  if (!data || typeof data !== 'object' || data.app !== 'calculadora-custo-3d') {
     throw new Error('Arquivo de backup inválido.');
   }
-  if (data.config) replaceSettings(data.config);
+  const filaments = Array.isArray(data.filaments) ? data.filaments : [];
+  const history = Array.isArray(data.history) ? data.history : [];
+  if (data.config && typeof data.config === 'object') replaceSettings(data.config);
   await db.transaction('rw', db.filaments, db.history, async () => {
     await db.filaments.clear();
     await db.history.clear();
-    if (data.filaments?.length) await db.filaments.bulkPut(data.filaments);
-    if (data.history?.length) await db.history.bulkPut(data.history);
+    if (filaments.length) await db.filaments.bulkPut(filaments);
+    if (history.length) await db.history.bulkPut(history);
   });
-  return { filaments: data.filaments?.length ?? 0, history: data.history?.length ?? 0 };
+  return { filaments: filaments.length, history: history.length };
 }

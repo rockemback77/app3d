@@ -1,8 +1,10 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Receipt } from 'lucide-svelte';
+  import { Receipt, Trash2 } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import { listCostItems, saveCostItem, deleteCostItem, type CostItem } from '../lib/db';
+  import PageHeader from '../components/PageHeader.svelte';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
   import { settings } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
 
@@ -21,7 +23,7 @@
   async function salvar() {
     if (!editing || !editing.name?.trim()) return;
     const acao = editing.id ? 'Atualizar' : 'Cadastrar';
-    if (!confirm(`${acao} o custo "${editing.name.trim()}"?`)) return;
+    if (!(await askConfirm({ title: `${acao} custo`, message: `${acao} o custo "${editing.name.trim()}"?`, confirmLabel: acao }))) return;
     await saveCostItem({
       id: editing.id,
       name: editing.name.trim(),
@@ -32,7 +34,8 @@
   }
 
   async function remover(c: CostItem) {
-    if (confirm(`Excluir o custo "${c.name}"?`)) await deleteCostItem(c.id);
+    if (await askConfirm({ title: 'Excluir custo', message: `Excluir o custo "${c.name}"?`, confirmLabel: 'Excluir', danger: true }))
+      await deleteCostItem(c.id);
   }
 
   // agrupa por categoria, na ordem cadastrada em Configurações (demais no fim)
@@ -56,18 +59,13 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <div class="flex items-center justify-between">
-    <h1 class="flex items-center gap-2.5 text-xl font-bold">
-      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md"><Receipt size={18} /></span>
-      Outros custos
-    </h1>
-    <button class="rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
-      + Novo
-    </button>
-  </div>
-  <p class="text-sm text-slate-500">
-    Cadastre custos que você usa com frequência (embalagem, frete, etiqueta…). Eles ficam disponíveis como opções em <span class="font-medium">Outros custos</span> no cálculo.
-  </p>
+  <PageHeader icon={Receipt} grad="from-indigo-500 to-violet-500" title="Outros custos" subtitle="Cadastre custos que você usa com frequência (embalagem, frete, etiqueta…). Eles ficam disponíveis como opções em Outros custos no cálculo.">
+    {#snippet action()}
+      <button class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
+        + Novo
+      </button>
+    {/snippet}
+  </PageHeader>
 
   {#if editing}
     <div class="rounded-2xl border border-sky-500/40 bg-slate-800/40 p-4">
@@ -119,8 +117,8 @@
                   <p class="truncate font-medium">{c.name}</p>
                   <p class="text-xs text-slate-500">{c.costCentavos ? formatBRL(c.costCentavos) : 'sem valor padrão'}</p>
                 </div>
-                <button class="text-sm text-sky-400" onclick={() => editar(c)}>Editar</button>
-                <button class="text-sm text-red-400" onclick={() => remover(c)}>Excluir</button>
+                <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => editar(c)}>Editar</button>
+                <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir custo" title="Excluir" onclick={() => remover(c)}><Trash2 size={16} /></button>
               </div>
             {/each}
           </div>

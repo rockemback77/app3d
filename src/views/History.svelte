@@ -2,6 +2,7 @@
   import { liveQuery } from 'dexie';
   import { Puzzle, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { filamentCostCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
@@ -27,8 +28,8 @@
     });
   });
 
-  function remover(rec: HistoryRecord) {
-    if (confirm(`Excluir o projeto "${rec.label}"? Esta ação não pode ser desfeita.`)) {
+  async function remover(rec: HistoryRecord) {
+    if (await askConfirm({ title: 'Excluir projeto', message: `Excluir o projeto "${rec.label}"? Esta ação não pode ser desfeita.`, confirmLabel: 'Excluir', danger: true })) {
       deleteHistory(rec.id);
     }
   }

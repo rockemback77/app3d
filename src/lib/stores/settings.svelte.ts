@@ -195,6 +195,17 @@ export function addCostCategory(name: string): void {
   }
 }
 
+export function renameCostCategory(oldName: string, newName: string): boolean {
+  const n = newName.trim();
+  if (!n) return false;
+  const i = settings.costCategories?.findIndex((x: string) => x === oldName) ?? -1;
+  if (i < 0) return false;
+  if (settings.costCategories.some((x: string, j: number) => j !== i && x.toLowerCase() === n.toLowerCase())) return false;
+  settings.costCategories[i] = n;
+  persistSettings();
+  return true;
+}
+
 export function removeCostCategory(name: string): void {
   const i = settings.costCategories?.indexOf(name) ?? -1;
   if (i >= 0) settings.costCategories.splice(i, 1);

@@ -10,6 +10,7 @@
   import { filamentCostCentavos, wearCostCentavos } from '../lib/engine/costs';
   import type { JobInputs } from '../lib/engine/types';
   import { formatBRL } from '../lib/money';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
 
   type Breakdown = ReturnType<typeof computeBreakdown>;
 
@@ -421,7 +422,7 @@
     }
     const tags = parseTags(saveTags);
     if (editingId) {
-      if (!confirm(`Tem certeza que deseja atualizar o projeto "${label}"?`)) return;
+      if (!(await askConfirm({ title: 'Atualizar projeto', message: `Atualizar o projeto "${label}"?`, confirmLabel: 'Atualizar' }))) return;
       await updateHistory({
         id: editingId,
         createdAt: editingCreatedAt,
@@ -434,7 +435,7 @@
       savedMsg = 'Projeto atualizado ✓';
       editingId = null;
     } else {
-      if (!confirm(`Tem certeza que deseja cadastrar o projeto "${label}"?`)) return;
+      if (!(await askConfirm({ title: 'Cadastrar projeto', message: `Cadastrar o projeto "${label}"?`, confirmLabel: 'Cadastrar' }))) return;
       await saveHistory({
         label,
         tags,

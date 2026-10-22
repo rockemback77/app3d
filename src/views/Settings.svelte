@@ -11,6 +11,8 @@
     LogOut,
     Info,
     Layers,
+    Smartphone,
+    Trash2,
     type Icon,
   } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
@@ -30,15 +32,18 @@
     DEFAULT_TAG_COLOR,
     addCostCategory,
     removeCostCategory,
+    renameCostCategory,
   } from '../lib/stores/settings.svelte';
   import { wearPerHourCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { exportBackup, importBackup } from '../lib/backup';
   import { liveQuery } from 'dexie';
-  import { countHistoryWithTag, removeTagFromAllHistory, renameTagInAllHistory, listHistory } from '../lib/db';
+  import { countHistoryWithTag, removeTagFromAllHistory, renameTagInAllHistory, listHistory, listCostItems, countCostItemsWithCategory, renameCategoryInCostItems, clearCategoryInCostItems } from '../lib/db';
   import { auth, signOut } from '../lib/stores/auth.svelte';
   import { syncState, push, pull } from '../lib/sync.svelte';
   import { subscription, isActive } from '../lib/stores/subscription.svelte';
+  import { pwa, promptInstall } from '../lib/stores/pwa.svelte';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
 
   let importMsg = $state('');
   let fileInput: HTMLInputElement;
@@ -58,11 +63,13 @@
       : null
   );
 
-  function removerPeca(part: { id: string; name: string }) {
-    if (confirm(`Excluir a peça de desgaste "${part.name || 'sem nome'}"?`)) removeWearPart(part.id);
+  async function removerPeca(part: { id: string; name: string }) {
+    if (await askConfirm({ title: 'Excluir peça de desgaste', message: `Excluir a peça de desgaste "${part.name || 'sem nome'}"?`, confirmLabel: 'Excluir', danger: true }))
+      removeWearPart(part.id);
   }
-  function removerMarket(mp: { id: string; name: string }) {
-    if (confirm(`Excluir o marketplace "${mp.name || 'sem nome'}"?`)) removeMarketplace(mp.id);
+  async function removerMarket(mp: { id: string; name: string }) {
+    if (await askConfirm({ title: 'Excluir marketplace', message: `Excluir o marketplace "${mp.name || 'sem nome'}"?`, confirmLabel: 'Excluir', danger: true }))
+      removeMarketplace(mp.id);
   }
 
   let wearHour = $derived(wearPerHourCentavos(settings));
@@ -105,20 +112,60 @@
     cancelarEdicaoTag();
   }
 
+  const custosLista = liveQuery(() => listCostItems());
+  function categoriaCount(cat: string): number {
+    const c = cat.toLowerCase();
+    return ($custosLista ?? []).filter((x) => (x.category ?? '').toLowerCase() === c).length;
+  }
+
   let novaCategoria = $state('');
   function adicionarCategoria() {
     addCostCategory(novaCategoria);
     novaCategoria = '';
   }
-  function removerCategoria(cat: string) {
-    if (confirm(`Excluir a categoria "${cat}"?`)) removeCostCategory(cat);
+
+  let editCat = $state<string | null>(null);
+  let editCatVal = $state('');
+  function iniciarEdicaoCat(cat: string) {
+    editCat = cat;
+    editCatVal = cat;
+  }
+  function cancelarEdicaoCat() {
+    editCat = null;
+    editCatVal = '';
+  }
+  async function salvarEdicaoCat(oldName: string) {
+    const novo = editCatVal.trim();
+    if (!novo || novo === oldName) {
+      cancelarEdicaoCat();
+      return;
+    }
+    if (!renameCostCategory(oldName, novo)) {
+      alert('Nome inválido ou já existe outra categoria com esse nome.');
+      return;
+    }
+    await renameCategoryInCostItems(oldName, novo);
+    cancelarEdicaoCat();
+  }
+  async function removerCategoria(cat: string) {
+    const n = await countCostItemsWithCategory(cat);
+    if (n > 0) {
+      if (!(await askConfirm({ title: 'Excluir categoria', message: `${n} custo(s) usam a categoria "${cat}". Excluir mesmo assim? Eles ficam sem categoria.`, confirmLabel: 'Excluir', danger: true }))) return;
+      await clearCategoryInCostItems(cat);
+    } else if (!(await askConfirm({ title: 'Excluir categoria', message: `Excluir a categoria "${cat}"?`, confirmLabel: 'Excluir', danger: true }))) {
+      return;
+    }
+    removeCostCategory(cat);
   }
   async function removerTag(tag: string) {
     const n = await countHistoryWithTag(tag);
     if (n > 0) {
-      const ok = confirm(
-        `${n} projeto(s) usam a tag "${tag}". Excluir mesmo assim? A tag será removida desses projetos (as outras tags permanecem).`
-      );
+      const ok = await askConfirm({
+        title: 'Excluir tag',
+        message: `${n} projeto(s) usam a tag "${tag}". Excluir mesmo assim? A tag será removida desses projetos (as outras tags permanecem).`,
+        confirmLabel: 'Excluir',
+        danger: true,
+      });
       if (!ok) return;
       await removeTagFromAllHistory(tag);
     }
@@ -199,6 +246,28 @@
           <LogOut size={15} /> Sair
         </button>
       </div>
+    {/if}
+  </div>
+
+  <!-- Instalar no celular -->
+  <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    {@render secao(Smartphone, 'from-emerald-500 to-teal-500', 'Instalar no app', 'Adicione o Printaê à tela inicial')}
+    {#if pwa.isStandalone}
+      <p class="text-sm text-emerald-300">App já instalado neste aparelho ✓</p>
+    {:else if pwa.canInstall}
+      <button class="w-full rounded-lg bg-sky-500 py-2.5 text-sm font-semibold text-white hover:bg-sky-400" onclick={() => promptInstall()}>
+        Instalar agora
+      </button>
+    {:else if pwa.isIOS}
+      <p class="text-sm text-slate-300">
+        No iPhone/iPad: toque em <span class="font-semibold">Compartilhar</span> e depois em
+        <span class="font-semibold">"Adicionar à Tela de Início"</span>.
+      </p>
+    {:else}
+      <p class="text-sm text-slate-300">
+        No navegador, abra o menu (⋮) e escolha <span class="font-semibold">"Instalar app"</span> ou
+        <span class="font-semibold">"Adicionar à tela inicial"</span>.
+      </p>
     {/if}
   </div>
 
@@ -298,7 +367,7 @@
               <span class="min-w-0 flex-1 truncate text-sm font-medium" style="color:{tagColor(tag)}">{tag}</span>
               <span class="shrink-0 text-xs text-slate-400">{tagCount(tag)} {tagCount(tag) === 1 ? 'projeto' : 'projetos'}</span>
               <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => iniciarEdicaoTag(tag)}>Editar</button>
-              <button class="shrink-0 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => removerTag(tag)}>Excluir</button>
+              <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir tag" title="Excluir" onclick={() => removerTag(tag)}><Trash2 size={16} /></button>
             {/if}
           </div>
         {/each}
@@ -321,12 +390,25 @@
       <button class="shrink-0 rounded-lg bg-sky-500 px-4 text-sm font-semibold text-white hover:bg-sky-400" onclick={adicionarCategoria}>Adicionar</button>
     </div>
     {#if settings.costCategories?.length}
-      <div class="flex flex-wrap gap-2">
+      <div class="space-y-1.5">
         {#each settings.costCategories ?? [] as cat (cat)}
-          <span class="flex items-center gap-1.5 rounded-full bg-slate-700 py-1 pl-3 pr-1.5 text-xs font-medium text-slate-200">
-            {cat}
-            <button class="flex h-4 w-4 items-center justify-center rounded-full bg-black/20 hover:bg-black/40" aria-label="Remover {cat}" onclick={() => removerCategoria(cat)}>×</button>
-          </span>
+          <div class="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-900/40 px-2 py-1.5">
+            {#if editCat === cat}
+              <input
+                class="min-w-0 flex-1 rounded border border-slate-600 bg-slate-900 px-2 py-1 text-sm"
+                maxlength="30"
+                bind:value={editCatVal}
+                onkeydown={(e) => e.key === 'Enter' && salvarEdicaoCat(cat)}
+              />
+              <button class="shrink-0 text-sm font-medium text-emerald-400" onclick={() => salvarEdicaoCat(cat)}>Salvar</button>
+              <button class="shrink-0 text-sm text-slate-400" onclick={cancelarEdicaoCat}>Cancelar</button>
+            {:else}
+              <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{cat}</span>
+              <span class="shrink-0 text-xs text-slate-400">{categoriaCount(cat)} {categoriaCount(cat) === 1 ? 'custo' : 'custos'}</span>
+              <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => iniciarEdicaoCat(cat)}>Editar</button>
+              <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir categoria" title="Excluir" onclick={() => removerCategoria(cat)}><Trash2 size={16} /></button>
+            {/if}
+          </div>
         {/each}
       </div>
     {:else}
@@ -407,7 +489,7 @@
               bind:value={part.name}
               oninput={persistSettings}
             />
-            <button class="shrink-0 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => removerPeca(part)}>Remover</button>
+            <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir peça de desgaste" title="Excluir" onclick={() => removerPeca(part)}><Trash2 size={16} /></button>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <label class="block">
@@ -467,7 +549,7 @@
           <div class="w-24 shrink-0">
             <NumberInput bind:value={mp.ratePercent} suffix="%" decimals={1} />
           </div>
-          <button class="shrink-0 rounded-lg bg-red-500/20 px-2.5 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => removerMarket(mp)}>✕</button>
+          <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir marketplace" title="Excluir" onclick={() => removerMarket(mp)}><Trash2 size={16} /></button>
         </div>
       {/each}
       <button class="w-full rounded-lg border border-sky-500/40 bg-sky-500/10 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-500/20" onclick={addMarketplace}>+ Adicionar marketplace</button>

@@ -12,6 +12,7 @@
   import Settings from './views/Settings.svelte';
   import Login from './views/Login.svelte';
   import Landing from './views/Landing.svelte';
+  import ConfirmDialog from './components/ConfirmDialog.svelte';
   import ResetPassword from './views/ResetPassword.svelte';
   import Subscribe from './views/Subscribe.svelte';
   import { ui } from './lib/stores/ui.svelte';
@@ -79,3 +80,5 @@
     </div>
   </div>
 {/if}
+
+<ConfirmDialog />

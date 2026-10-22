@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Calculator, Spool, Layers, Package, DollarSign, Boxes, Wrench, WifiOff, TrendingUp, Download } from 'lucide-svelte';
+  import { Calculator, Spool, Layers, Package, DollarSign, Boxes, Wrench, WifiOff, TrendingUp, Download, Gift, Smartphone } from 'lucide-svelte';
 
   let { onLogin, onSignup }: { onLogin: () => void; onSignup: () => void } = $props();
 
@@ -86,9 +86,17 @@
           Entrar
         </button>
       </div>
-      <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400 md:justify-start">
-        <WifiOff size={14} /> Teste grátis por 7 dias · instala no celular · 100% offline
-      </p>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-sm font-semibold text-emerald-300 ring-1 ring-emerald-500/30">
+          <Gift size={15} /> 7 dias grátis
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-3 py-1.5 text-sm font-semibold text-sky-300 ring-1 ring-sky-500/30">
+          <Smartphone size={15} /> Instala no celular
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 px-3 py-1.5 text-sm font-semibold text-violet-300 ring-1 ring-violet-500/30">
+          <WifiOff size={15} /> 100% offline
+        </span>
+      </div>
     </div>
 
     <!-- mock do resultado do cálculo -->

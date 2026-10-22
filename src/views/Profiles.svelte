@@ -1,7 +1,8 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Spool } from 'lucide-svelte';
+  import { Spool, Trash2 } from 'lucide-svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import { listFilaments, saveFilament, deleteFilament, filamentLabel, type FilamentProfile } from '../lib/db';
   import { formatBRL } from '../lib/money';
@@ -112,7 +113,7 @@
     if (!editing || !editing.type?.trim()) return;
     const label = filamentLabel(editing.type, editing.colorLabel);
     const acao = editing.id ? 'Atualizar' : 'Cadastrar';
-    if (!confirm(`${acao} o filamento "${label}"?`)) return;
+    if (!(await askConfirm({ title: `${acao} filamento`, message: `${acao} o filamento "${label}"?`, confirmLabel: acao }))) return;
     await saveFilament({
       id: editing.id,
       type: editing.type.trim(),
@@ -125,7 +126,8 @@
   }
 
   async function remover(f: FilamentProfile) {
-    if (confirm(`Excluir o filamento "${f.name}"?`)) await deleteFilament(f.id);
+    if (await askConfirm({ title: 'Excluir filamento', message: `Excluir o filamento "${f.name}"?`, confirmLabel: 'Excluir', danger: true }))
+      await deleteFilament(f.id);
   }
 </script>
 
@@ -255,7 +257,7 @@
                   <p class="text-xs text-slate-500">{f.type} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
                 </div>
                 <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => editar(f)}>Editar</button>
-                <button class="shrink-0 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => remover(f)}>Excluir</button>
+                <button class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10" aria-label="Excluir filamento" title="Excluir" onclick={() => remover(f)}><Trash2 size={16} /></button>
               </div>
             {/each}
           </div>

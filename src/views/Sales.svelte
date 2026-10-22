@@ -14,6 +14,7 @@
     type Transaction,
   } from '../lib/db';
   import { formatBRL } from '../lib/money';
+  import { askConfirm } from '../lib/stores/confirm.svelte';
 
   const txs = liveQuery(() => listTransactions());
   const pecas = liveQuery(() => listHistory());
@@ -85,7 +86,7 @@
   async function adicionar() {
     if (!label.trim() || !(quantity > 0)) return;
     const tipoLabel = tipo === 'receita' ? 'receita' : 'despesa';
-    if (!confirm(`Cadastrar ${tipoLabel} de "${label.trim()}" (${formatBRL(total)})?`)) return;
+    if (!(await askConfirm({ title: 'Cadastrar lançamento', message: `Cadastrar ${tipoLabel} de "${label.trim()}" (${formatBRL(total)})?`, confirmLabel: 'Cadastrar' }))) return;
     await saveTransaction({
       type: tipo,
       date: data,
@@ -98,7 +99,8 @@
   }
 
   async function remover(t: Transaction) {
-    if (confirm(`Excluir o lançamento "${t.label}"?`)) await deleteTransaction(t.id);
+    if (await askConfirm({ title: 'Excluir lançamento', message: `Excluir o lançamento "${t.label}"?`, confirmLabel: 'Excluir', danger: true }))
+      await deleteTransaction(t.id);
   }
 
   // ---- agrupamento por mês ----
