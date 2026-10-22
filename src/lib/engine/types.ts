@@ -31,6 +31,10 @@ export interface JobFilament {
   pricePerKgCentavos: number; // R$/kg
 }
 
+export interface JobPlate {
+  filaments: JobFilament[]; // filamentos usados nesta placa
+}
+
 export type LaborMode = 'hourly' | 'fixed';
 
 export interface JobMiscItem {
@@ -42,7 +46,8 @@ export interface JobMiscItem {
 export type PriceMode = 'margin' | 'fixed';
 
 export interface JobInputs {
-  filaments: JobFilament[]; // até 4
+  filaments: JobFilament[]; // compat/achatado: todos os filamentos (fallback de registros antigos)
+  plates?: JobPlate[]; // novo: projeto dividido em placas, cada uma com seus filamentos
   printHours: number; // tempo total de impressão em horas (decimal)
   laborMode: LaborMode;
   laborHours: number;

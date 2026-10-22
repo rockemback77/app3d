@@ -46,37 +46,18 @@
     return filamentsOfBrand(brand).filter((p) => (p.type?.trim() || '') === type);
   }
 
-  // estado de UI por linha de filamento (nao faz parte do JobInputs)
+  // estado de UI por filamento (marca/tipo/modo) — espelha job.plates[pi].filaments[fi]
   type FilUI = { mode: 'cadastrado' | 'manual'; brand: string; type: string };
-  let fui = $state<FilUI[]>([{ mode: 'cadastrado', brand: '', type: '' }]);
-
-  function setFilMode(i: number, mode: 'cadastrado' | 'manual') {
-    fui[i].mode = mode;
-    const f = job.filaments[i];
-    if (mode === 'manual') {
-      f.profileId = '';
-    } else if (!fui[i].brand) {
-      fui[i].brand = brands[0] ?? '';
-    }
+  function newFilUI(): FilUI {
+    return { mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '', type: '' };
   }
-  function onPickBrand(i: number, brand: string) {
-    fui[i].brand = brand;
-    fui[i].type = '';
-    const f = job.filaments[i];
-    f.profileId = '';
-    f.name = '';
-    f.pricePerKgCentavos = 0;
-  }
-  function onPickType(i: number, type: string) {
-    fui[i].type = type;
-    const f = job.filaments[i];
-    f.profileId = '';
-    f.name = '';
-    f.pricePerKgCentavos = 0;
+  function newPlate() {
+    return { filaments: [emptyFilament()] };
   }
 
   let job = $state<JobInputs>({
-    filaments: [emptyFilament()],
+    filaments: [],
+    plates: [newPlate()],
     printHours: 0,
     laborMode: 'hourly',
     laborHours: 0,
@@ -88,6 +69,36 @@
     fixedPriceCentavos: 0,
     marketplaceId: null,
   });
+
+  // UI por placa -> por filamento
+  let pui = $state<FilUI[][]>([[newFilUI()]]);
+  // confirmação por placa
+  let plateOk = $state<boolean[]>([false]);
+  let plateConf = $state<string[]>(['']);
+  let plateErr = $state<string[]>(['']);
+
+  function allPlates() { return job.plates ?? []; }
+
+  function setFilMode(pi: number, fi: number, mode: 'cadastrado' | 'manual') {
+    pui[pi][fi].mode = mode;
+    const f = allPlates()[pi].filaments[fi];
+    if (mode === 'manual') {
+      f.profileId = '';
+    } else if (!pui[pi][fi].brand) {
+      pui[pi][fi].brand = brands[0] ?? '';
+    }
+  }
+  function onPickBrand(pi: number, fi: number, brand: string) {
+    pui[pi][fi].brand = brand;
+    pui[pi][fi].type = '';
+    const f = allPlates()[pi].filaments[fi];
+    f.profileId = ''; f.name = ''; f.pricePerKgCentavos = 0;
+  }
+  function onPickType(pi: number, fi: number, type: string) {
+    pui[pi][fi].type = type;
+    const f = allPlates()[pi].filaments[fi];
+    f.profileId = ''; f.name = ''; f.pricePerKgCentavos = 0;
+  }
 
   // tempo em horas + minutos
   let hh = $state(0);
@@ -110,46 +121,52 @@
 
   // ---- confirmação por seção ----
   // assinaturas de cada seção; ao mudar, a confirmação cai
-  function sigFilaments() { return JSON.stringify(job.filaments); }
+  function sigFilaments() { return JSON.stringify(job.plates); }
   function sigLabor() { return JSON.stringify([hh, mm, job.laborMode, laborHh, laborMm, job.laborFixedCentavos, job.useWear]); }
   function sigMisc() { return JSON.stringify(job.misc); }
   function sigPrice() { return JSON.stringify([job.priceMode, job.marginPercent, job.fixedPriceCentavos, job.marketplaceId]); }
   function sigAll() { return sigFilaments() + sigLabor() + sigMisc() + sigPrice(); }
 
-  const curF = $derived(sigFilaments());
   const curL = $derived(sigLabor());
   const curP = $derived(sigPrice());
   const curAll = $derived(sigAll());
 
-  let okF = $state(false);
   let okL = $state(false);
   let okP = $state(false);
-  let confF = $state('');
   let confL = $state('');
   let confP = $state('');
 
+  // filamentos OK = há placas e todas confirmadas
+  let okF = $derived(allPlates().length > 0 && allPlates().every((_, i) => plateOk[i]));
+
+  // editar uma placa derruba a confirmação dela
+  $effect(() => {
+    const ps = job.plates ?? [];
+    for (let i = 0; i < ps.length; i++) {
+      if (plateOk[i] && JSON.stringify(ps[i].filaments) !== plateConf[i]) plateOk[i] = false;
+    }
+  });
   // editar uma seção derruba a confirmação dela
-  $effect(() => { if (okF && curF !== confF) okF = false; });
   $effect(() => { if (okL && curL !== confL) okL = false; });
   $effect(() => { if (okP && curP !== confP) okP = false; });
 
-  let errF = $state('');
   let errL = $state('');
   let errP = $state('');
 
-  function validarFilamentos(): string {
-    for (let i = 0; i < job.filaments.length; i++) {
-      const f = job.filaments[i];
-      const u = fui[i];
+  function validarPlaca(pi: number): string {
+    const fils = allPlates()[pi].filaments;
+    for (let fi = 0; fi < fils.length; fi++) {
+      const f = fils[fi];
+      const u = pui[pi][fi];
       if (u.mode === 'cadastrado') {
-        if (!u.brand) return `Filamento #${i + 1}: selecione a marca.`;
-        if (!u.type) return `Filamento #${i + 1}: selecione o tipo.`;
-        if (!f.profileId) return `Filamento #${i + 1}: selecione o filamento.`;
+        if (!u.brand) return `Filamento #${fi + 1}: selecione a marca.`;
+        if (!u.type) return `Filamento #${fi + 1}: selecione o tipo.`;
+        if (!f.profileId) return `Filamento #${fi + 1}: selecione o filamento.`;
       } else {
-        if (!f.name.trim()) return `Filamento #${i + 1}: informe o nome.`;
-        if (!(f.pricePerKgCentavos > 0)) return `Filamento #${i + 1}: informe o preço/kg.`;
+        if (!f.name.trim()) return `Filamento #${fi + 1}: informe o nome.`;
+        if (!(f.pricePerKgCentavos > 0)) return `Filamento #${fi + 1}: informe o preço/kg.`;
       }
-      if (!(f.grams > 0)) return `Filamento #${i + 1}: informe os gramas.`;
+      if (!(f.grams > 0)) return `Filamento #${fi + 1}: informe os gramas.`;
     }
     return '';
   }
@@ -163,14 +180,14 @@
     return '';
   }
 
-  function toggleF() {
-    if (!okF) {
-      const e = validarFilamentos();
-      if (e) { errF = e; return; }
+  function togglePlate(pi: number) {
+    if (!plateOk[pi]) {
+      const e = validarPlaca(pi);
+      if (e) { plateErr[pi] = e; return; }
     }
-    errF = '';
-    okF = !okF;
-    if (okF) confF = sigFilaments();
+    plateErr[pi] = '';
+    plateOk[pi] = !plateOk[pi];
+    if (plateOk[pi]) plateConf[pi] = JSON.stringify(allPlates()[pi].filaments);
   }
   function toggleL() {
     if (!okL) {
@@ -202,7 +219,7 @@
 
   function calcular() {
     const faltam: string[] = [];
-    if (!okF) faltam.push('Filamentos');
+    if (!okF) faltam.push('Placas / filamentos');
     if (!okL) faltam.push('Tempo & mão de obra');
     if (!okP) faltam.push('Preço de venda');
     if (faltam.length) {
@@ -211,6 +228,8 @@
       return;
     }
     calcMsg = '';
+    // achata as placas no campo filaments (compat + engine)
+    job.filaments = allPlates().flatMap((p) => p.filaments);
     result = computeBreakdown(settings, job);
     resultSig = sigAll();
   }
@@ -225,14 +244,24 @@
   $effect(() => {
     const rec = editState.record;
     if (!rec) return;
-    job.filaments = rec.job.filaments.length ? clone(rec.job.filaments) : [emptyFilament()];
-    fui = job.filaments.map((f) => {
-      if (f.profileId) {
-        const p = ($filaments ?? []).find((x) => x.id === f.profileId);
-        return { mode: 'cadastrado' as const, brand: p ? p.brand?.trim() || 'Sem marca' : '', type: p?.type?.trim() || '' };
-      }
-      return { mode: 'manual' as const, brand: '', type: '' };
-    });
+    // registros antigos têm só job.filaments (sem placas): embrulha em 1 placa
+    const srcPlates = rec.job.plates && rec.job.plates.length
+      ? clone(rec.job.plates)
+      : [{ filaments: rec.job.filaments.length ? clone(rec.job.filaments) : [emptyFilament()] }];
+    job.plates = srcPlates;
+    job.filaments = srcPlates.flatMap((pl) => pl.filaments);
+    pui = srcPlates.map((pl) =>
+      pl.filaments.map((f) => {
+        if (f.profileId) {
+          const p = ($filaments ?? []).find((x) => x.id === f.profileId);
+          return { mode: 'cadastrado' as const, brand: p ? p.brand?.trim() || 'Sem marca' : '', type: p?.type?.trim() || '' };
+        }
+        return { mode: 'manual' as const, brand: '', type: '' };
+      })
+    );
+    plateOk = srcPlates.map(() => true);
+    plateConf = srcPlates.map((pl) => JSON.stringify(pl.filaments));
+    plateErr = srcPlates.map(() => '');
     job.laborMode = rec.job.laborMode;
     job.laborHours = rec.job.laborHours;
     job.laborFixedCentavos = rec.job.laborFixedCentavos;
@@ -251,8 +280,8 @@
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
     // ao editar, confirma tudo e já mostra o resultado salvo
-    confF = sigFilaments(); confL = sigLabor(); confP = sigPrice();
-    okF = okL = okP = true;
+    confL = sigLabor(); confP = sigPrice();
+    okL = okP = true;
     result = clone(rec.breakdown);
     resultSig = sigAll();
     calcMsg = '';
@@ -260,8 +289,10 @@
   });
 
   function resetCalc() {
-    job.filaments = [emptyFilament()];
-    fui = [{ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '', type: '' }];
+    job.plates = [newPlate()];
+    job.filaments = [];
+    pui = [[newFilUI()]];
+    plateOk = [false]; plateConf = ['']; plateErr = [''];
     job.laborMode = 'hourly';
     job.laborHours = 0;
     job.laborFixedCentavos = 0;
@@ -278,34 +309,40 @@
     saveLabel = '';
     saveTags = '';
     editingId = null;
-    okF = okL = okP = false;
+    okL = okP = false;
     result = null;
     calcMsg = '';
     savedMsg = '';
   }
 
+  const MAX_PLATES = 12;
   const MAX_FILAMENTS = 12;
-  function setFilamentCount(n: number) {
-    const target = Math.min(MAX_FILAMENTS, Math.max(1, n));
-    while (job.filaments.length < target) {
-      job.filaments.push(emptyFilament());
-      fui.push({ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '', type: '' });
+
+  function setPlateCount(n: number) {
+    const target = Math.min(MAX_PLATES, Math.max(1, n));
+    const ps = allPlates();
+    while (ps.length < target) {
+      ps.push(newPlate());
+      pui.push([newFilUI()]);
+      plateOk.push(false); plateConf.push(''); plateErr.push('');
     }
-    while (job.filaments.length > target) {
-      job.filaments.pop();
-      fui.pop();
+    while (ps.length > target) {
+      ps.pop(); pui.pop(); plateOk.pop(); plateConf.pop(); plateErr.pop();
     }
   }
 
-  function onPickProfile(i: number, profileId: string) {
-    const f = job.filaments[i];
+  function setFilamentCount(pi: number, n: number) {
+    const target = Math.min(MAX_FILAMENTS, Math.max(1, n));
+    const fils = allPlates()[pi].filaments;
+    while (fils.length < target) { fils.push(emptyFilament()); pui[pi].push(newFilUI()); }
+    while (fils.length > target) { fils.pop(); pui[pi].pop(); }
+  }
+
+  function onPickProfile(pi: number, fi: number, profileId: string) {
+    const f = allPlates()[pi].filaments[fi];
     f.profileId = profileId;
-    const list = $filaments ?? [];
-    const p = list.find((x) => x.id === profileId);
-    if (p) {
-      f.name = p.name;
-      f.pricePerKgCentavos = p.pricePerKgCentavos;
-    }
+    const p = ($filaments ?? []).find((x) => x.id === profileId);
+    if (p) { f.name = p.name; f.pricePerKgCentavos = p.pricePerKgCentavos; }
   }
 
   function addMisc() {
@@ -469,110 +506,153 @@
     </div>
   </section>
 
-  <!-- Filamentos -->
+  <!-- Placas e filamentos -->
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
-    <div class="mb-3 flex items-center justify-between gap-2">
-      {@render head(Spool, 'from-violet-500 to-purple-500', 'Filamentos')}
-      {@render okToggle(okF, toggleF)}
-    </div>
-    {#if errF}<p class="mb-2 text-xs font-medium text-amber-400">{errF}</p>{/if}
-    <div class="mb-3">
-      <span class="mb-1 block text-xs text-slate-500">Quantidade de filamentos</span>
+    <div class="mb-3">{@render head(Spool, 'from-violet-500 to-purple-500', 'Placas e filamentos')}</div>
+
+    <!-- Quantidade de placas -->
+    <div class="mb-4">
+      <span class="mb-1 block text-xs text-slate-500">Quantidade de placas</span>
       <div class="flex gap-2">
         {#each [1, 2, 3, 4] as n (n)}
           <button
-            class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.filaments.length === n ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
-            onclick={() => setFilamentCount(n)}>{n}</button>
+            class="flex-1 rounded-lg py-1.5 text-sm font-medium {allPlates().length === n ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+            onclick={() => setPlateCount(n)}>{n}</button>
         {/each}
         <button
-          class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.filaments.length >= 5 ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
-          onclick={() => setFilamentCount(Math.max(5, job.filaments.length))}>5+</button>
+          class="flex-1 rounded-lg py-1.5 text-sm font-medium {allPlates().length >= 5 ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+          onclick={() => setPlateCount(Math.max(5, allPlates().length))}>5+</button>
       </div>
-      {#if job.filaments.length >= 5}
+      {#if allPlates().length >= 5}
         <div class="mt-2 flex items-center justify-center gap-4">
           <button
             class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
-            disabled={job.filaments.length <= 5}
-            onclick={() => setFilamentCount(job.filaments.length - 1)}>−</button>
-          <span class="w-8 text-center text-lg font-bold">{job.filaments.length}</span>
+            disabled={allPlates().length <= 5}
+            onclick={() => setPlateCount(allPlates().length - 1)}>−</button>
+          <span class="w-8 text-center text-lg font-bold">{allPlates().length}</span>
           <button
             class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
-            disabled={job.filaments.length >= MAX_FILAMENTS}
-            onclick={() => setFilamentCount(job.filaments.length + 1)}>+</button>
+            disabled={allPlates().length >= MAX_PLATES}
+            onclick={() => setPlateCount(allPlates().length + 1)}>+</button>
         </div>
       {/if}
     </div>
-    <div class="space-y-3">
-      {#each job.filaments as f, i (i)}
-        <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-          <div class="mb-2 flex items-center gap-2">
-            <span class="shrink-0 text-xs font-medium text-slate-400">#{i + 1}</span>
-            <div class="flex flex-1 gap-1.5">
+
+    <!-- Uma placa por vez -->
+    <div class="space-y-4">
+      {#each allPlates() as plate, pi (pi)}
+        <div class="rounded-xl border border-violet-300/30 bg-violet-500/5 p-3">
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <span class="rounded-full bg-gradient-to-r from-violet-500 to-purple-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">Placa {pi + 1}</span>
+            {@render okToggle(plateOk[pi], () => togglePlate(pi))}
+          </div>
+          {#if plateErr[pi]}<p class="mb-2 text-xs font-medium text-amber-400">{plateErr[pi]}</p>{/if}
+
+          <div class="mb-3">
+            <span class="mb-1 block text-xs text-slate-500">Filamentos nesta placa</span>
+            <div class="flex gap-2">
+              {#each [1, 2, 3, 4] as n (n)}
+                <button
+                  class="flex-1 rounded-lg py-1.5 text-sm font-medium {plate.filaments.length === n ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+                  onclick={() => setFilamentCount(pi, n)}>{n}</button>
+              {/each}
               <button
-                type="button"
-                class="flex-1 rounded-lg py-1 text-xs font-medium {fui[i].mode === 'cadastrado' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
-                onclick={() => setFilMode(i, 'cadastrado')}
-              >Cadastrado</button>
-              <button
-                type="button"
-                class="flex-1 rounded-lg py-1 text-xs font-medium {fui[i].mode === 'manual' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
-                onclick={() => setFilMode(i, 'manual')}
-              >Manual</button>
+                class="flex-1 rounded-lg py-1.5 text-sm font-medium {plate.filaments.length >= 5 ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+                onclick={() => setFilamentCount(pi, Math.max(5, plate.filaments.length))}>5+</button>
             </div>
-          </div>
-          {#if fui[i].mode === 'cadastrado'}
-            {#if brands.length}
-              <div class="mb-2 grid grid-cols-2 gap-2">
-                <select
-                  class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
-                  value={fui[i].brand}
-                  onchange={(e) => onPickBrand(i, (e.target as HTMLSelectElement).value)}
-                >
-                  <option value="" disabled>Selecione a marca</option>
-                  {#each brands as b (b)}<option value={b}>{b}</option>{/each}
-                </select>
-                <select
-                  class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
-                  value={fui[i].type}
-                  disabled={!fui[i].brand}
-                  onchange={(e) => onPickType(i, (e.target as HTMLSelectElement).value)}
-                >
-                  <option value="">Selecione o tipo</option>
-                  {#each typesOfBrand(fui[i].brand) as t (t)}<option value={t}>{t}</option>{/each}
-                </select>
+            {#if plate.filaments.length >= 5}
+              <div class="mt-2 flex items-center justify-center gap-4">
+                <button
+                  class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
+                  disabled={plate.filaments.length <= 5}
+                  onclick={() => setFilamentCount(pi, plate.filaments.length - 1)}>−</button>
+                <span class="w-8 text-center text-lg font-bold">{plate.filaments.length}</span>
+                <button
+                  class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
+                  disabled={plate.filaments.length >= MAX_FILAMENTS}
+                  onclick={() => setFilamentCount(pi, plate.filaments.length + 1)}>+</button>
               </div>
-              <select
-                class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
-                value={f.profileId}
-                disabled={!fui[i].type}
-                onchange={(e) => onPickProfile(i, (e.target as HTMLSelectElement).value)}
-              >
-                <option value="">Selecione o filamento</option>
-                {#each filamentsOfBrandAndType(fui[i].brand, fui[i].type) as p (p.id)}<option value={p.id}>{p.colorLabel || p.name}</option>{/each}
-              </select>
-            {:else}
-              <p class="mb-2 text-xs text-slate-400">Nenhum filamento cadastrado. Use Manual ou cadastre na aba Filamentos.</p>
             {/if}
-          {:else}
-            <input
-              class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
-              placeholder="Nome do filamento"
-              maxlength="60"
-              bind:value={f.name}
-            />
-          {/if}
-          <div class="grid grid-cols-2 gap-2">
-            <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Gramas</span>
-              <NumberInput bind:value={f.grams} suffix="g" decimals={1} />
-            </label>
-            <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Preço/kg</span>
-              <CurrencyInput bind:value={f.pricePerKgCentavos} />
-            </label>
           </div>
-          <p class="mt-2 text-right text-xs text-slate-500">
-            = {formatBRL(filamentCostCentavos(f.grams, f.pricePerKgCentavos))}
+
+          <div class="space-y-3">
+            {#each plate.filaments as f, fi (fi)}
+              <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                <div class="mb-2 flex items-center gap-2">
+                  <span class="shrink-0 text-xs font-medium text-slate-400">#{fi + 1}</span>
+                  <div class="flex flex-1 gap-1.5">
+                    <button
+                      type="button"
+                      class="flex-1 rounded-lg py-1 text-xs font-medium {pui[pi][fi].mode === 'cadastrado' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+                      onclick={() => setFilMode(pi, fi, 'cadastrado')}
+                    >Cadastrado</button>
+                    <button
+                      type="button"
+                      class="flex-1 rounded-lg py-1 text-xs font-medium {pui[pi][fi].mode === 'manual' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
+                      onclick={() => setFilMode(pi, fi, 'manual')}
+                    >Manual</button>
+                  </div>
+                </div>
+                {#if pui[pi][fi].mode === 'cadastrado'}
+                  {#if brands.length}
+                    <div class="mb-2 grid grid-cols-2 gap-2">
+                      <select
+                        class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
+                        value={pui[pi][fi].brand}
+                        onchange={(e) => onPickBrand(pi, fi, (e.target as HTMLSelectElement).value)}
+                      >
+                        <option value="" disabled>Selecione a marca</option>
+                        {#each brands as b (b)}<option value={b}>{b}</option>{/each}
+                      </select>
+                      <select
+                        class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
+                        value={pui[pi][fi].type}
+                        disabled={!pui[pi][fi].brand}
+                        onchange={(e) => onPickType(pi, fi, (e.target as HTMLSelectElement).value)}
+                      >
+                        <option value="">Selecione o tipo</option>
+                        {#each typesOfBrand(pui[pi][fi].brand) as t (t)}<option value={t}>{t}</option>{/each}
+                      </select>
+                    </div>
+                    <select
+                      class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
+                      value={f.profileId}
+                      disabled={!pui[pi][fi].type}
+                      onchange={(e) => onPickProfile(pi, fi, (e.target as HTMLSelectElement).value)}
+                    >
+                      <option value="">Selecione o filamento</option>
+                      {#each filamentsOfBrandAndType(pui[pi][fi].brand, pui[pi][fi].type) as p (p.id)}<option value={p.id}>{p.colorLabel || p.name}</option>{/each}
+                    </select>
+                  {:else}
+                    <p class="mb-2 text-xs text-slate-400">Nenhum filamento cadastrado. Use Manual ou cadastre na aba Filamentos.</p>
+                  {/if}
+                {:else}
+                  <input
+                    class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
+                    placeholder="Nome do filamento"
+                    maxlength="60"
+                    bind:value={f.name}
+                  />
+                {/if}
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="block">
+                    <span class="mb-1 block text-xs text-slate-500">Gramas</span>
+                    <NumberInput bind:value={f.grams} suffix="g" decimals={1} />
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-xs text-slate-500">Preço/kg</span>
+                    <CurrencyInput bind:value={f.pricePerKgCentavos} />
+                  </label>
+                </div>
+                <p class="mt-2 text-right text-xs text-slate-500">
+                  = {formatBRL(filamentCostCentavos(f.grams, f.pricePerKgCentavos))}
+                </p>
+              </div>
+            {/each}
+          </div>
+
+          <p class="mt-2 text-right text-xs font-medium text-slate-400">
+            Subtotal da placa: {formatBRL(plate.filaments.reduce((s, f) => s + filamentCostCentavos(f.grams, f.pricePerKgCentavos), 0))}
           </p>
         </div>
       {/each}

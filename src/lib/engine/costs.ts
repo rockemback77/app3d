@@ -1,13 +1,19 @@
-import type { AppConfig, JobInputs } from './types';
+import type { AppConfig, JobFilament, JobInputs } from './types';
 
 /** Custo de 1 filamento em centavos: gramas * (R$/kg) / 1000. */
 export function filamentCostCentavos(grams: number, pricePerKgCentavos: number): number {
   return Math.round((grams * pricePerKgCentavos) / 1000);
 }
 
-/** Soma do custo de todos os filamentos do job. */
+/** Todos os filamentos do job: achata as placas; cai no flat antigo se não houver placas. */
+export function jobFilaments(job: JobInputs): JobFilament[] {
+  if (job.plates && job.plates.length) return job.plates.flatMap((p) => p.filaments ?? []);
+  return job.filaments ?? [];
+}
+
+/** Soma do custo de todos os filamentos do job (todas as placas). */
 export function totalFilamentCentavos(job: JobInputs): number {
-  return job.filaments.reduce(
+  return jobFilaments(job).reduce(
     (sum, f) => sum + filamentCostCentavos(f.grams, f.pricePerKgCentavos),
     0
   );
