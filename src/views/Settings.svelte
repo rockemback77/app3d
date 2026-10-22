@@ -297,8 +297,8 @@
             {:else}
               <span class="min-w-0 flex-1 truncate text-sm font-medium" style="color:{tagColor(tag)}">{tag}</span>
               <span class="shrink-0 text-xs text-slate-400">{tagCount(tag)} {tagCount(tag) === 1 ? 'projeto' : 'projetos'}</span>
-              <button class="shrink-0 text-sm text-sky-400" onclick={() => iniciarEdicaoTag(tag)}>Editar</button>
-              <button class="shrink-0 text-sm text-red-400" onclick={() => removerTag(tag)}>Excluir</button>
+              <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => iniciarEdicaoTag(tag)}>Editar</button>
+              <button class="shrink-0 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => removerTag(tag)}>Excluir</button>
             {/if}
           </div>
         {/each}

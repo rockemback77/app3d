@@ -2,6 +2,7 @@
   import { liveQuery } from 'dexie';
   import { Puzzle, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
+  import { filamentCostCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
   import { ui, editHistory } from '../lib/stores/ui.svelte';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
@@ -89,22 +90,33 @@
     {/if}
 
     {#each filtered as rec (rec.id)}
+      {@const lucro = rec.breakdown.priceWithMarginCentavos - rec.breakdown.totalCostCentavos}
       <div class="glass p-3">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="truncate font-medium">{rec.label}</p>
-            <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
-            {#if rec.tags && rec.tags.length}
-              <div class="mt-1 flex flex-wrap gap-1">
-                {#each rec.tags as tag (tag)}
-                  <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
-                {/each}
-              </div>
-            {/if}
+        <div class="min-w-0">
+          <p class="truncate font-medium">{rec.label}</p>
+          <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
+          {#if rec.tags && rec.tags.length}
+            <div class="mt-1 flex flex-wrap gap-1">
+              {#each rec.tags as tag (tag)}
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <!-- Custo, venda e lucro sempre visíveis -->
+        <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400">Custo</p>
+            <p class="text-sm font-bold text-rose-600 dark:text-rose-400">{formatBRL(rec.breakdown.totalCostCentavos)}</p>
           </div>
-          <div class="shrink-0 text-right">
-            <p class="text-xs text-slate-500">Venda</p>
-            <p class="font-bold text-sky-600 dark:text-sky-400">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
+          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400">Venda</p>
+            <p class="text-sm font-bold text-sky-600 dark:text-sky-400">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
+          </div>
+          <div class="rounded-lg bg-slate-100 py-1.5 dark:bg-slate-700/50">
+            <p class="text-[10px] uppercase tracking-wide text-slate-400">Lucro</p>
+            <p class="text-sm font-bold {lucro >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">{formatBRL(lucro)}</p>
           </div>
         </div>
 
@@ -137,6 +149,11 @@
           <div class="mt-3 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
             <ul class="space-y-0.5 text-slate-600 dark:text-slate-300">
               <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(rec.breakdown.filamentCentavos)}</span></li>
+              {#if rec.job.plates && rec.job.plates.length > 1}
+                {#each rec.job.plates as plate, pi (pi)}
+                  <li class="flex justify-between pl-3 text-xs text-slate-400"><span>Placa {pi + 1}</span><span>{formatBRL(plate.filaments.reduce((s, f) => s + filamentCostCentavos(f.grams, f.pricePerKgCentavos), 0))}</span></li>
+                {/each}
+              {/if}
               <li class="flex justify-between"><span>Energia</span><span>{formatBRL(rec.breakdown.energyCentavos)}</span></li>
               <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(rec.breakdown.wearCentavos)}</span></li>
               <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(rec.breakdown.laborCentavos)}</span></li>
