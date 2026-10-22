@@ -32,8 +32,8 @@
 </script>
 
 {#if auth.loading}
-  <div class="flex min-h-screen items-center justify-center text-slate-400">
-    <span class="text-3xl">🖨️</span>
+  <div class="flex min-h-screen items-center justify-center">
+    <img src="./icone.png" alt="" class="h-16 w-16 animate-pulse object-contain" />
   </div>
 {:else if auth.recovery}
   <ResetPassword />
@@ -44,8 +44,8 @@
     <Landing onLogin={() => abrirLogin('login')} onSignup={() => abrirLogin('cadastro')} />
   {/if}
 {:else if subscription.loading}
-  <div class="flex min-h-screen items-center justify-center text-slate-400">
-    <span class="text-3xl">🖨️</span>
+  <div class="flex min-h-screen items-center justify-center">
+    <img src="./icone.png" alt="" class="h-16 w-16 animate-pulse object-contain" />
   </div>
 {:else if !isActive()}
   <Subscribe />
