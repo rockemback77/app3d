@@ -29,12 +29,14 @@
         <div class="mb-5 inline-flex items-center justify-center rounded-3xl bg-white p-4 shadow-xl shadow-violet-500/20 ring-1 ring-white/60">
           <img src="./logo.png" alt="Printaê" class="h-16 w-auto" />
         </div>
-        <h1 class="text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl dark:text-white">
-          Precifique certo e
-          <span class="bg-gradient-to-r from-violet-500 to-sky-500 bg-clip-text text-transparent">gerencie seu negócio 3D</span>
+        <h1 class="text-3xl font-black leading-tight text-slate-900 sm:text-4xl dark:text-white">
+          Chega de <span class="text-rose-500">planilha</span>.<br />
+          Chega de <span class="text-rose-500">chutar preço</span>.
         </h1>
         <p class="mx-auto mt-4 max-w-md text-base text-slate-600 md:mx-0 dark:text-slate-300">
-          Do custo real da impressão ao estoque, insumos e vendas. Tudo num app, mesmo offline.
+          Calcule o preço certo e
+          <span class="font-semibold text-slate-800 dark:text-slate-100">gerencie seu negócio 3D</span>:
+          custo real da impressão, estoque, insumos e vendas — tudo num app, mesmo offline.
         </p>
         <div class="mt-6 flex flex-col gap-3 sm:flex-row md:justify-start">
           <button

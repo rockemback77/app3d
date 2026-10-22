@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Puzzle, SquarePen, Pencil, Trash2 } from 'lucide-svelte';
+  import { Puzzle, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { formatBRL } from '../lib/money';
   import { ui, editHistory } from '../lib/stores/ui.svelte';
@@ -8,7 +8,6 @@
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
-  let acoesDe = $state<string | null>(null); // projeto com menu de ações aberto
   let query = $state('');
   let tagFiltro = $state<string | null>(null);
 
@@ -91,7 +90,7 @@
 
     {#each filtered as rec (rec.id)}
       <div class="glass p-3">
-        <button class="flex w-full items-center justify-between gap-3 text-left" onclick={() => toggle(rec.id)}>
+        <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p class="truncate font-medium">{rec.label}</p>
             <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
@@ -103,11 +102,37 @@
               </div>
             {/if}
           </div>
-          <div class="text-right">
+          <div class="shrink-0 text-right">
             <p class="text-xs text-slate-500">Venda</p>
             <p class="font-bold text-sky-600 dark:text-sky-400">{formatBRL(rec.breakdown.finalPriceCentavos)}</p>
           </div>
-        </button>
+        </div>
+
+        <!-- Ações sempre visíveis -->
+        <div class="mt-3 flex items-center gap-2">
+          <button
+            class="flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+            onclick={() => toggle(rec.id)}
+          >
+            {#if open === rec.id}<ChevronUp size={16} />{:else}<ChevronDown size={16} />{/if}
+            Detalhes
+          </button>
+          <button
+            class="flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400"
+            onclick={() => editHistory(rec)}
+          >
+            <Pencil size={15} /> Editar
+          </button>
+          <button
+            class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10"
+            aria-label="Excluir projeto"
+            title="Excluir"
+            onclick={() => remover(rec)}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+
         {#if open === rec.id}
           <div class="mt-3 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
             <ul class="space-y-0.5 text-slate-600 dark:text-slate-300">
@@ -121,34 +146,6 @@
                 <li class="flex justify-between text-xs"><span>{rec.breakdown.marketplaceName} ({rec.breakdown.marketplaceRatePercent}%)</span><span></span></li>
               {/if}
             </ul>
-            <div class="mt-3 flex justify-end">
-              <div class="relative">
-                <button
-                  class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-700 text-slate-200 hover:bg-slate-600"
-                  aria-label="Editar projeto"
-                  title="Editar"
-                  onclick={() => (acoesDe = acoesDe === rec.id ? null : rec.id)}
-                >
-                  <SquarePen size={18} />
-                </button>
-                {#if acoesDe === rec.id}
-                  <div class="absolute bottom-full right-0 z-10 mb-1 w-40 overflow-hidden rounded-lg border border-white/10 bg-slate-800 shadow-xl">
-                    <button
-                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-700"
-                      onclick={() => { acoesDe = null; editHistory(rec); }}
-                    >
-                      <Pencil size={15} /> Editar
-                    </button>
-                    <button
-                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-400 hover:bg-slate-700"
-                      onclick={() => { acoesDe = null; remover(rec); }}
-                    >
-                      <Trash2 size={15} /> Excluir
-                    </button>
-                  </div>
-                {/if}
-              </div>
-            </div>
           </div>
         {/if}
       </div>
