@@ -137,6 +137,11 @@ function fromPreapproval(pre: any, paymentId: string | null): Resolved | null {
 }
 
 Deno.serve(async (req) => {
+  // Health check: validadores de webhook (inclusive o MP ao salvar a URL)
+  // às vezes fazem um GET. Responde 200 para não reprovar a validação.
+  if (req.method === 'GET') {
+    return new Response('ok', { status: 200 });
+  }
   if (req.method !== 'POST') {
     return new Response('method not allowed', { status: 405 });
   }
