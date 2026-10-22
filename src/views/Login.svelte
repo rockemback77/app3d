@@ -1,9 +1,16 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
+  import { ArrowLeft } from 'lucide-svelte';
   import { signIn, signUp, resetPassword, signInWithGoogle } from '../lib/stores/auth.svelte';
+
+  let {
+    initialMode = 'login',
+    onBack,
+  }: { initialMode?: 'login' | 'cadastro'; onBack?: () => void } = $props();
 
   let email = $state('');
   let senha = $state('');
-  let modo = $state<'login' | 'cadastro'>('login');
+  let modo = $state<'login' | 'cadastro'>(untrack(() => initialMode));
   let authMsg = $state('');
   let busy = $state(false);
 
@@ -57,6 +64,11 @@
 
 <div class="flex min-h-screen flex-col items-center justify-center p-6">
   <div class="w-full max-w-sm">
+    {#if onBack}
+      <button class="mb-4 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600" onclick={onBack}>
+        <ArrowLeft size={16} /> Voltar
+      </button>
+    {/if}
     <div class="mb-8 text-center">
       <img src="./icon-192.png" alt="App 3D" class="mx-auto mb-3 h-20 w-20 rounded-3xl shadow-lg shadow-violet-500/30" />
       <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">App 3D</h1>
