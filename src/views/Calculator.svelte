@@ -36,10 +36,19 @@
   function filamentsOfBrand(brand: string) {
     return ($filaments ?? []).filter((p) => (p.brand?.trim() || 'Sem marca') === brand);
   }
+  // tipos distintos dos filamentos de uma marca
+  function typesOfBrand(brand: string) {
+    const set = new Set<string>();
+    for (const p of filamentsOfBrand(brand)) if (p.type?.trim()) set.add(p.type.trim());
+    return [...set].sort((a, b) => a.localeCompare(b, 'pt', { sensitivity: 'base' }));
+  }
+  function filamentsOfBrandAndType(brand: string, type: string) {
+    return filamentsOfBrand(brand).filter((p) => (p.type?.trim() || '') === type);
+  }
 
   // estado de UI por linha de filamento (nao faz parte do JobInputs)
-  type FilUI = { mode: 'cadastrado' | 'manual'; brand: string };
-  let fui = $state<FilUI[]>([{ mode: 'cadastrado', brand: '' }]);
+  type FilUI = { mode: 'cadastrado' | 'manual'; brand: string; type: string };
+  let fui = $state<FilUI[]>([{ mode: 'cadastrado', brand: '', type: '' }]);
 
   function setFilMode(i: number, mode: 'cadastrado' | 'manual') {
     fui[i].mode = mode;
@@ -52,6 +61,14 @@
   }
   function onPickBrand(i: number, brand: string) {
     fui[i].brand = brand;
+    fui[i].type = '';
+    const f = job.filaments[i];
+    f.profileId = '';
+    f.name = '';
+    f.pricePerKgCentavos = 0;
+  }
+  function onPickType(i: number, type: string) {
+    fui[i].type = type;
     const f = job.filaments[i];
     f.profileId = '';
     f.name = '';
@@ -126,6 +143,7 @@
       const u = fui[i];
       if (u.mode === 'cadastrado') {
         if (!u.brand) return `Filamento #${i + 1}: selecione a marca.`;
+        if (!u.type) return `Filamento #${i + 1}: selecione o tipo.`;
         if (!f.profileId) return `Filamento #${i + 1}: selecione o filamento.`;
       } else {
         if (!f.name.trim()) return `Filamento #${i + 1}: informe o nome.`;
@@ -211,9 +229,9 @@
     fui = job.filaments.map((f) => {
       if (f.profileId) {
         const p = ($filaments ?? []).find((x) => x.id === f.profileId);
-        return { mode: 'cadastrado' as const, brand: p ? p.brand?.trim() || 'Sem marca' : '' };
+        return { mode: 'cadastrado' as const, brand: p ? p.brand?.trim() || 'Sem marca' : '', type: p?.type?.trim() || '' };
       }
-      return { mode: 'manual' as const, brand: '' };
+      return { mode: 'manual' as const, brand: '', type: '' };
     });
     job.laborMode = rec.job.laborMode;
     job.laborHours = rec.job.laborHours;
@@ -243,7 +261,7 @@
 
   function resetCalc() {
     job.filaments = [emptyFilament()];
-    fui = [{ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '' }];
+    fui = [{ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '', type: '' }];
     job.laborMode = 'hourly';
     job.laborHours = 0;
     job.laborFixedCentavos = 0;
@@ -271,7 +289,7 @@
     const target = Math.min(MAX_FILAMENTS, Math.max(1, n));
     while (job.filaments.length < target) {
       job.filaments.push(emptyFilament());
-      fui.push({ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '' });
+      fui.push({ mode: brands.length ? 'cadastrado' : 'manual', brand: brands[0] ?? '', type: '' });
     }
     while (job.filaments.length > target) {
       job.filaments.pop();
@@ -514,14 +532,24 @@
                   {#each brands as b (b)}<option value={b}>{b}</option>{/each}
                 </select>
                 <select
-                  class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
-                  value={f.profileId}
-                  onchange={(e) => onPickProfile(i, (e.target as HTMLSelectElement).value)}
+                  class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
+                  value={fui[i].type}
+                  disabled={!fui[i].brand}
+                  onchange={(e) => onPickType(i, (e.target as HTMLSelectElement).value)}
                 >
-                  <option value="">Selecione o filamento</option>
-                  {#each filamentsOfBrand(fui[i].brand) as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+                  <option value="">Selecione o tipo</option>
+                  {#each typesOfBrand(fui[i].brand) as t (t)}<option value={t}>{t}</option>{/each}
                 </select>
               </div>
+              <select
+                class="mb-2 w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 disabled:opacity-50"
+                value={f.profileId}
+                disabled={!fui[i].type}
+                onchange={(e) => onPickProfile(i, (e.target as HTMLSelectElement).value)}
+              >
+                <option value="">Selecione o filamento</option>
+                {#each filamentsOfBrandAndType(fui[i].brand, fui[i].type) as p (p.id)}<option value={p.id}>{p.colorLabel || p.name}</option>{/each}
+              </select>
             {:else}
               <p class="mb-2 text-xs text-slate-400">Nenhum filamento cadastrado. Use Manual ou cadastre na aba Filamentos.</p>
             {/if}

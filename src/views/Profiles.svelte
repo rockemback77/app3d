@@ -2,10 +2,23 @@
   import { liveQuery } from 'dexie';
   import { Spool } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
-  import { listFilaments, saveFilament, deleteFilament, type FilamentProfile } from '../lib/db';
+  import { listFilaments, saveFilament, deleteFilament, filamentLabel, type FilamentProfile } from '../lib/db';
   import { formatBRL } from '../lib/money';
 
-  const TYPES = ['PLA', 'PETG', 'ABS', 'TPU', 'Resina', 'Outro'];
+  const TYPES_BASE = ['PLA', 'PETG', 'ABS', 'TPU', 'Resina'];
+
+  // tipo: escolher um conhecido ou "Outro" (digita texto livre em editing.type)
+  let customTipo = $state(false);
+  function onPickTipo(value: string) {
+    if (!editing) return;
+    if (value === 'Outro') {
+      customTipo = true;
+      editing.type = '';
+    } else {
+      customTipo = false;
+      editing.type = value;
+    }
+  }
 
   const PRESET_COLORS = [
     { label: 'Preto', hex: '#1f2937' },
@@ -83,23 +96,25 @@
       pricePerKgCentavos: 0,
     };
     customCor = false;
+    customTipo = false;
     marcaMode = temMarcas ? 'cadastrada' : 'manual';
   }
 
   function editar(f: FilamentProfile) {
     editing = { ...f };
     customCor = !PRESET_COLORS.some((c) => c.hex.toLowerCase() === (f.color ?? '').toLowerCase());
+    customTipo = !TYPES_BASE.includes(f.type);
     marcaMode = f.brand && marcas.includes(f.brand) ? 'cadastrada' : 'manual';
   }
 
   async function salvar() {
-    if (!editing || !editing.name?.trim()) return;
+    if (!editing || !editing.type?.trim()) return;
+    const label = filamentLabel(editing.type, editing.colorLabel);
     const acao = editing.id ? 'Atualizar' : 'Cadastrar';
-    if (!confirm(`${acao} o filamento "${editing.name.trim()}"?`)) return;
+    if (!confirm(`${acao} o filamento "${label}"?`)) return;
     await saveFilament({
       id: editing.id,
-      name: editing.name.trim(),
-      type: editing.type || 'Outro',
+      type: editing.type.trim(),
       color: editing.color || '#38bdf8',
       colorLabel: editing.colorLabel,
       brand: editing.brand,
@@ -154,16 +169,25 @@
             </datalist>
           {/if}
         </div>
-        <label class="block">
-          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Nome *</span>
-          <input class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.name} placeholder="Ex: PLA Azul" maxlength="60" />
-        </label>
-        <label class="block">
-          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tipo</span>
-          <select class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900" bind:value={editing.type}>
-            {#each TYPES as t}<option value={t}>{t}</option>{/each}
+        <div class="block">
+          <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tipo *</span>
+          <select
+            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
+            value={customTipo ? 'Outro' : editing.type}
+            onchange={(e) => onPickTipo((e.target as HTMLSelectElement).value)}
+          >
+            {#each TYPES_BASE as t}<option value={t}>{t}</option>{/each}
+            <option value="Outro">Outro</option>
           </select>
-        </label>
+          {#if customTipo}
+            <input
+              class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
+              bind:value={editing.type}
+              placeholder="Digite o tipo (ex: Nylon, PC)"
+              maxlength="30"
+            />
+          {/if}
+        </div>
         <div class="block">
           <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Cor</span>
           <div class="flex flex-wrap items-center gap-2">

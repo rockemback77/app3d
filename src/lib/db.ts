@@ -125,14 +125,19 @@ export async function listFilaments(): Promise<FilamentProfile[]> {
   });
 }
 
+/** Nome de exibição derivado: tipo + cor (ex: "PLA Azul"). */
+export function filamentLabel(type?: string, colorLabel?: string): string {
+  return [type?.trim(), colorLabel?.trim()].filter(Boolean).join(' ') || (type?.trim() || 'Filamento');
+}
+
 export async function saveFilament(
-  p: Omit<FilamentProfile, 'id' | 'createdAt'> & { id?: string }
+  p: Omit<FilamentProfile, 'id' | 'createdAt' | 'name'> & { id?: string; name?: string }
 ): Promise<string> {
   const id = p.id ?? uid();
   const existing = p.id ? await db.filaments.get(p.id) : undefined;
   await db.filaments.put({
     id,
-    name: p.name,
+    name: filamentLabel(p.type, p.colorLabel),
     type: p.type,
     color: p.color,
     colorLabel: p.colorLabel,
