@@ -18,8 +18,8 @@
 <div class="min-h-screen">
   <!-- Hero -->
   <header class="mx-auto max-w-3xl px-6 pt-12 pb-8 text-center">
-    <img src="./icon-192.png" alt="Printaê" class="mx-auto mb-4 h-20 w-20 rounded-3xl shadow-lg shadow-violet-500/30" />
-    <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-3xl font-extrabold text-transparent sm:text-4xl">Printaê</h1>
+    <img src="./logo.png" alt="Printaê" class="mx-auto mb-4 h-24 w-auto" />
+    <h1 class="sr-only">Printaê</h1>
     <p class="mx-auto mt-3 max-w-xl text-base text-slate-600 dark:text-slate-300">
       Calcule o custo real da sua impressão 3D e o preço de venda certo — mesmo sem internet.
       Feito para makers que vendem o que imprimem.

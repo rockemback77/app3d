@@ -8,7 +8,6 @@
     Package,
     Warehouse,
     Settings,
-    Printer,
     type Icon,
   } from 'lucide-svelte';
   import { ui, type Tab } from '../lib/stores/ui.svelte';
@@ -35,7 +34,7 @@
 
 {#snippet brand()}
   <div class="mb-5 flex items-center gap-2 px-1">
-    <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 text-white shadow-md shadow-violet-500/30"><Printer size={20} /></span>
+    <img src="./icone.png" alt="" class="h-10 w-10 object-contain" />
     <span class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text font-extrabold text-transparent">Printaê</span>
   </div>
 {/snippet}
