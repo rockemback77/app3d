@@ -16,8 +16,8 @@
 <div class="flex min-h-screen flex-col items-center justify-center p-6">
   <div class="w-full max-w-sm">
     <div class="mb-8 text-center">
-      <img src="./icon-192.png" alt="App 3D" class="mx-auto mb-3 h-20 w-20 rounded-3xl shadow-lg shadow-violet-500/30" />
-      <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">App 3D</h1>
+      <img src="./icon-192.png" alt="Printaê" class="mx-auto mb-3 h-20 w-20 rounded-3xl shadow-lg shadow-violet-500/30" />
+      <h1 class="bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-2xl font-extrabold text-transparent">Printaê</h1>
     </div>
 
     <div class="space-y-3 rounded-3xl bg-white/90 p-5 text-center shadow-xl shadow-slate-200/60 backdrop-blur dark:bg-slate-800/90 dark:shadow-black/30">

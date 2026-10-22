@@ -13,8 +13,8 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'App 3D',
-        short_name: 'App 3D',
+        name: 'Printaê',
+        short_name: 'Printaê',
         description:
           'Calcule o custo e o preço de venda das suas impressões 3D. Funciona offline.',
         lang: 'pt-BR',
