@@ -6,13 +6,15 @@ Edge Function do Supabase que recebe notificações do Mercado Pago e atualiza
 Arquivos:
 - `supabase/functions/mp-webhook/index.ts` — a função
 - `supabase/migrations/0001_subscriptions_provider_columns.sql` — colunas que a função grava
+- `supabase/migrations/0002_webhook_events.sql` — tabela de dedup (idempotência)
+- `supabase/functions/.env.example` — template dos secrets (preencher depois)
 - `supabase/config.toml` — `verify_jwt = false` para esta função
 
 ## Segurança (já implementada na função)
 
 - **HMAC** do header `x-signature` verificado antes de qualquer coisa. POST forjado = 401.
 - **Nunca confia no corpo**: pega só o `id` e consulta a API do MP com o `MP_ACCESS_TOKEN`.
-- **Idempotência**: upsert por `user_id` (PK). MP reenvia o mesmo evento sem duplicar.
+- **Idempotência**: dedup de entrega por `webhook_events` (ignora reenvio da mesma notificação) + upsert por `user_id` (PK) que não duplica estado.
 - **service_role** (burla RLS) injetado automático no runtime — não vira secret seu.
 
 ## Pré-requisitos (uma vez)
@@ -23,16 +25,18 @@ supabase login
 supabase link --project-ref xsfeemdgkdsfdommxztw
 ```
 
-## 1. Migration (colunas provider)
+## 1. Migrations (colunas provider + tabela de dedup)
 
-Roda a migration que garante as colunas usadas pela função:
+Roda as migrations: colunas que a função grava em `subscriptions` e a tabela
+`webhook_events` (dedup de idempotência):
 
 ```bash
 supabase db push
 ```
 
 Alternativa manual (SQL Editor do Supabase): cole o conteúdo de
-`supabase/migrations/0001_subscriptions_provider_columns.sql`.
+`supabase/migrations/0001_subscriptions_provider_columns.sql` e
+`supabase/migrations/0002_webhook_events.sql`.
 
 ## 2. Segredos
 
@@ -43,6 +47,16 @@ Só estes dois precisam ser configurados:
 supabase secrets set MP_ACCESS_TOKEN=APP_USR-xxxxxxxx
 supabase secrets set MP_WEBHOOK_SECRET=sua-chave-secreta-do-painel-mp
 ```
+
+Ou preencha o template e seta tudo de uma vez (chaves para preencher depois):
+
+```bash
+cp supabase/functions/.env.example supabase/functions/.env
+# edite supabase/functions/.env com os valores reais
+supabase secrets set --env-file ./supabase/functions/.env
+```
+
+O `.env` com valores reais não é comitado (está no `.gitignore`).
 
 - `MP_ACCESS_TOKEN`: Mercado Pago > Suas integrações > sua aplicação > Credenciais de produção > Access Token.
 - `MP_WEBHOOK_SECRET`: Mercado Pago > sua aplicação > Webhooks > "Chave secreta" (clave secreta). É essa chave que assina o `x-signature`.

@@ -271,16 +271,53 @@ Tradução de status (MP → nosso):
 
 ---
 
-## 6. Idempotência (por que gravar o mesmo aviso 2x não quebra)
+## 6. Idempotência (por que receber o mesmo aviso 2x não quebra)
 
-O Mercado Pago **reenvia** o mesmo aviso se achar que você não recebeu (timeout,
-erro). Então o mesmo evento pode chegar 2, 3 vezes. Se cada chegada criasse uma
-linha nova, você teria assinaturas duplicadas.
+**Idempotência** = repetir a operação dá o mesmo resultado final. É essencial em
+webhook porque o Mercado Pago **reenvia** avisos. Há três situações diferentes, e
+cada uma tem a sua defesa:
 
-Solução: **upsert por `user_id`** (que é a chave primária). Upsert = "insere se não
-existe, atualiza se existe". Chegando o mesmo aviso de novo, ele só reescreve a
-mesma linha com os mesmos dados. Zero duplicata. Isso é **idempotência**: repetir a
-operação dá o mesmo resultado.
+### Problema 1 — duplicata de ESTADO (mesmo aviso, grava 2x)
+
+O MP reenvia o aviso se achar que você não recebeu (timeout, erro). Se cada chegada
+criasse uma linha nova, você teria assinaturas duplicadas.
+
+**Defesa:** `upsert` por `user_id` (a chave primária). Upsert = "insere se não
+existe, atualiza se existe". O mesmo aviso de novo só reescreve a mesma linha com os
+mesmos dados. Zero duplicata.
+
+### Problema 2 — evento fora de ORDEM (aviso velho chega depois do novo)
+
+Avisos podem chegar atrasados/trocados. Um aviso antigo "authorized" poderia chegar
+**depois** de um "cancelled" e reativar uma assinatura cancelada.
+
+**Defesa:** "nunca confie no corpo". O webhook sempre **reconsulta o estado atual**
+no MP (item 5.4). Mesmo que um aviso velho chegue atrasado, ao perguntar ao MP a
+gente recebe o estado **de agora**, não o do aviso. Então sempre gravamos a verdade
+atual, independente da ordem de chegada.
+
+### Problema 3 — reprocessamento à TOA (mesmo aviso, trabalho repetido)
+
+Mesmo com as defesas acima, reprocessar o mesmo aviso gasta chamadas à API do MP
+sem necessidade.
+
+**Defesa:** a tabela `webhook_events`. Cada notificação do MP tem um **id próprio**
+(`body.id`), estável entre reenvios da mesma notificação. O fluxo:
+
+```
+1. chega aviso  → já existe esse id em webhook_events?
+       sim → responde 200 "duplicate" e PARA (não reconsulta o MP)
+       não → processa normalmente
+2. processa (consulta MP, upsert na subscriptions)
+3. SÓ se deu tudo certo → grava o id em webhook_events (marca "processado")
+```
+
+Detalhe crucial da ordem: a marca só entra **depois** do sucesso. Se o processamento
+falhar no meio (MP fora do ar, erro no banco), o id **não** é gravado — aí o reenvio
+do MP reprocessa normalmente. **Nunca perdemos uma atualização por causa do dedup.**
+
+> Resumindo as três camadas: `webhook_events` evita trabalho repetido, o re-fetch no
+> MP resolve ordem, e o upsert por `user_id` garante uma linha só por usuário.
 
 ---
 
@@ -322,7 +359,8 @@ Supabase: a chave mais perigosa nunca precisa ser copiada por você.
 
 > Detalhes e comandos completos: `docs/webhook-mercadopago.md`.
 
-1. **Migration** (`supabase db push`) → cria as 2 colunas que faltavam na tabela.
+1. **Migrations** (`supabase db push`) → cria as 2 colunas que faltavam em
+   `subscriptions` e a tabela `webhook_events` (dedup).
 2. **Segredos** (`supabase secrets set MP_ACCESS_TOKEN=... MP_WEBHOOK_SECRET=...`).
 3. **Deploy do webhook** (`supabase functions deploy mp-webhook --no-verify-jwt`).
 4. **Painel do MP** → cadastrar a URL do webhook e os eventos de assinatura.

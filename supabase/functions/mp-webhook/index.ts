@@ -162,6 +162,29 @@ Deno.serve(async (req) => {
     return new Response('missing data.id', { status: 400 });
   }
 
+  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  // Idempotência de ENTREGA: o MP reenvia a mesma notificação em caso de
+  // timeout/erro. `body.id` é o id da notificação (estável entre reenvios da
+  // MESMA notificação — diferente do data.id, que é o id do recurso). Se já
+  // processamos esse id, short-circuit: evita reconsultar a API do MP à toa.
+  // (Duplicata de ESTADO já é coberta pelo upsert por user_id; evento fora de
+  // ordem já é coberto por sempre reconsultarmos o estado atual no MP.)
+  const eventId = body?.id != null ? String(body.id) : null;
+  if (eventId) {
+    const { data: seen } = await supabase
+      .from('webhook_events')
+      .select('event_id')
+      .eq('provider', 'mercadopago')
+      .eq('event_id', eventId)
+      .maybeSingle();
+    if (seen) {
+      return new Response('duplicate', { status: 200 });
+    }
+  }
+
   // Resolve o estado real consultando o MP (nunca confia no corpo).
   let resolved: Resolved | null = null;
 
@@ -200,10 +223,6 @@ Deno.serve(async (req) => {
     return new Response('no-op', { status: 200 });
   }
 
-  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
   const { error } = await supabase.from('subscriptions').upsert(
     {
       user_id: resolved.userId,
@@ -221,6 +240,20 @@ Deno.serve(async (req) => {
   if (error) {
     console.error('upsert subscriptions falhou:', error.message);
     return new Response('db error', { status: 500 });
+  }
+
+  // Marca o evento como processado SÓ APÓS sucesso. Se algo acima falhasse
+  // (MP ou db), o evento NÃO seria marcado e o reenvio do MP reprocessaria —
+  // nunca perdemos uma atualização por causa do dedup.
+  if (eventId) {
+    const { error: evErr } = await supabase
+      .from('webhook_events')
+      .insert({ provider: 'mercadopago', event_id: eventId });
+    // 23505 = unique_violation (corrida com reenvio simultâneo). Inofensivo:
+    // o estado já foi gravado. Qualquer outro erro é só log, não quebra a resposta.
+    if (evErr && evErr.code !== '23505') {
+      console.error('registro em webhook_events falhou (nao-fatal):', evErr.message);
+    }
   }
 
   return new Response('ok', { status: 200 });
