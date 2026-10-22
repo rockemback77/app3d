@@ -1,0 +1,8 @@
+# Config do Supabase CLI para este projeto.
+# O webhook do Mercado Pago é anônimo (o MP não manda JWT do Supabase),
+# então a verificação de JWT fica desligada para essa função.
+
+project_id = "xsfeemdgkdsfdommxztw"
+
+[functions.mp-webhook]
+verify_jwt = false
