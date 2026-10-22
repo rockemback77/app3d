@@ -117,7 +117,7 @@
     const n = await countHistoryWithTag(tag);
     if (n > 0) {
       const ok = confirm(
-        `${n} peça(s) usam a tag "${tag}". Excluir mesmo assim? A tag será removida dessas peças (as outras tags permanecem).`
+        `${n} projeto(s) usam a tag "${tag}". Excluir mesmo assim? A tag será removida desses projetos (as outras tags permanecem).`
       );
       if (!ok) return;
       await removeTagFromAllHistory(tag);

@@ -353,19 +353,19 @@
     if (!result) return; // só cadastra após calcular
     const label = saveLabel.trim();
     if (!label) {
-      savedMsg = 'Dê um nome à peça antes de cadastrar.';
+      savedMsg = 'Dê um nome ao projeto antes de cadastrar.';
       setTimeout(() => (savedMsg = ''), 3500);
       return;
     }
     // nome único obrigatório
     if (await historyLabelExists(label, editingId ?? undefined)) {
-      savedMsg = `Já existe uma peça chamada "${label}". Escolha outro nome.`;
+      savedMsg = `Já existe um projeto chamado "${label}". Escolha outro nome.`;
       setTimeout(() => (savedMsg = ''), 4500);
       return;
     }
     const tags = parseTags(saveTags);
     if (editingId) {
-      if (!confirm(`Tem certeza que deseja atualizar a peça "${label}"?`)) return;
+      if (!confirm(`Tem certeza que deseja atualizar o projeto "${label}"?`)) return;
       await updateHistory({
         id: editingId,
         createdAt: editingCreatedAt,
@@ -375,10 +375,10 @@
         configSnapshot: clone(settings),
         breakdown: clone(result),
       });
-      savedMsg = 'Peça atualizada ✓';
+      savedMsg = 'Projeto atualizado ✓';
       editingId = null;
     } else {
-      if (!confirm(`Tem certeza que deseja cadastrar a peça "${label}"?`)) return;
+      if (!confirm(`Tem certeza que deseja cadastrar o projeto "${label}"?`)) return;
       await saveHistory({
         label,
         tags,
@@ -386,7 +386,7 @@
         configSnapshot: clone(settings),
         breakdown: clone(result),
       });
-      savedMsg = 'Peça cadastrada ✓';
+      savedMsg = 'Projeto cadastrado ✓';
     }
     resetCalc();
     ui.tab = 'history';
@@ -429,11 +429,11 @@
     </div>
   {/if}
 
-  <!-- Nome da peça -->
+  <!-- Nome do projeto -->
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
-    <div class="mb-3">{@render head(Package, 'from-sky-500 to-cyan-500', 'Peça')}</div>
+    <div class="mb-3">{@render head(Package, 'from-sky-500 to-cyan-500', 'Projeto')}</div>
     <label class="block">
-      <span class="mb-1 block text-sm font-semibold text-sky-400">Nome da peça</span>
+      <span class="mb-1 block text-sm font-semibold text-sky-400">Nome do projeto</span>
       <input
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
         placeholder="Ex: Suporte de fone"
@@ -762,7 +762,7 @@
         disabled={!result}
         onclick={cadastrar}
       >
-        {editingId ? 'Atualizar peça' : 'Cadastrar peça'}
+        {editingId ? 'Atualizar projeto' : 'Cadastrar projeto'}
       </button>
       {#if !result}
         <p class="mt-1 text-center text-xs text-slate-400">Calcule primeiro para liberar o cadastro.</p>

@@ -58,7 +58,7 @@
     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md"><Package size={18} /></span>
     Estoque
   </h1>
-  <p class="text-sm text-slate-500">Informe quantas unidades de cada peça você tem em estoque.</p>
+  <p class="text-sm text-slate-500">Informe quantas unidades de cada projeto você tem em estoque.</p>
 
   <!-- Resumo do lucro possível -->
   <div class="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 p-4 text-white shadow-lg shadow-emerald-500/25">
@@ -163,7 +163,7 @@
     </div>
   {:else}
     <p class="rounded-2xl border border-white/10 bg-slate-800/40 p-6 text-center text-sm text-slate-500">
-      Nenhuma peça cadastrada ainda. Cadastre um projeto para controlar o estoque.
+      Nenhum projeto cadastrado ainda. Cadastre um projeto para controlar o estoque.
     </p>
   {/if}
 </div>

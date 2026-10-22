@@ -210,7 +210,7 @@
     </label>
 
     <label class="mb-3 block">
-      <span class="mb-1 block text-xs text-slate-500">{tipo === 'receita' ? 'Peça vendida' : 'Custo / filamento'}</span>
+      <span class="mb-1 block text-xs text-slate-500">{tipo === 'receita' ? 'Projeto vendido' : 'Custo / filamento'}</span>
       <select
         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900"
         value={pick}
@@ -239,7 +239,7 @@
         {/if}
       </select>
       {#if tipo === 'receita' && !($pecas ?? []).length}
-        <span class="mt-1 block text-xs text-amber-600">Salve uma peça no histórico para vendê-la aqui.</span>
+        <span class="mt-1 block text-xs text-amber-600">Salve um projeto no histórico para vendê-lo aqui.</span>
       {/if}
     </label>
 

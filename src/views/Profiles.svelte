@@ -252,7 +252,7 @@
               <div class="flex items-center gap-3 glass p-3">
                 <span class="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/10" style="background:{f.color}"></span>
                 <div class="min-w-0 flex-1">
-                  <p class="truncate font-medium">{f.name}</p>
+                  <p class="truncate font-medium">{f.colorLabel || f.name}</p>
                   <p class="text-xs text-slate-500">{f.type} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
                 </div>
                 <button class="text-sm text-sky-600" onclick={() => editar(f)}>Editar</button>

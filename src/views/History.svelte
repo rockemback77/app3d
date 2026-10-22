@@ -27,7 +27,7 @@
   });
 
   function remover(rec: HistoryRecord) {
-    if (confirm(`Excluir a peça "${rec.label}"? Esta ação não pode ser desfeita.`)) {
+    if (confirm(`Excluir o projeto "${rec.label}"? Esta ação não pode ser desfeita.`)) {
       deleteHistory(rec.id);
     }
   }
@@ -59,7 +59,7 @@
       <input
         class="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
         type="search"
-        placeholder="Buscar peça pelo nome"
+        placeholder="Buscar projeto pelo nome"
         maxlength="60"
         bind:value={query}
       />
@@ -85,7 +85,7 @@
 
     {#if filtered.length === 0}
       <p class="glass p-6 text-center text-sm text-slate-500">
-        Nenhuma peça encontrada{query ? ` para "${query}"` : ''}{tagFiltro ? ` com a tag "${tagFiltro}"` : ''}.
+        Nenhum projeto encontrado{query ? ` para "${query}"` : ''}{tagFiltro ? ` com a tag "${tagFiltro}"` : ''}.
       </p>
     {/if}
 
