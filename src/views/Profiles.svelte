@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { Spool } from 'lucide-svelte';
+  import PageHeader from '../components/PageHeader.svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import { listFilaments, saveFilament, deleteFilament, filamentLabel, type FilamentProfile } from '../lib/db';
   import { formatBRL } from '../lib/money';
@@ -129,15 +130,13 @@
 </script>
 
 <div class="space-y-4 p-4 pb-8">
-  <div class="flex items-center justify-between">
-    <h1 class="flex items-center gap-2.5 text-xl font-bold">
-      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 text-white shadow-md"><Spool size={18} /></span>
-      Filamentos
-    </h1>
-    <button class="rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
-      + Novo
-    </button>
-  </div>
+  <PageHeader icon={Spool} grad="from-violet-500 to-purple-500" title="Filamentos">
+    {#snippet action()}
+      <button class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
+        + Novo
+      </button>
+    {/snippet}
+  </PageHeader>
 
   {#if editing}
     <div class="glass p-4 ring-1 ring-sky-300/60 dark:ring-sky-500/40">

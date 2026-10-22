@@ -63,9 +63,6 @@
 <section id="inicio" class="w-full px-6 py-16">
   <div class="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-2">
     <div class="text-center md:text-left" use:reveal>
-      <div class="mb-5 inline-flex items-center justify-center rounded-3xl bg-white p-4 shadow-xl shadow-violet-500/20 ring-1 ring-white/60">
-        <img src="./logo.png" alt="Printaê" class="h-16 w-auto" />
-      </div>
       <h1 class="text-3xl font-black leading-tight text-slate-900 sm:text-4xl dark:text-white">
         Chega de <span class="text-rose-500">planilha</span>.<br />
         Chega de <span class="text-rose-500">chutar preço</span>.
@@ -113,6 +110,8 @@
       </div>
       <ul class="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-300">
         <li class="flex justify-between"><span>Filamento</span><span>R$ 2,40</span></li>
+        <li class="flex justify-between pl-3 text-[11px] text-slate-400"><span>Placa 1</span><span>R$ 1,40</span></li>
+        <li class="flex justify-between pl-3 text-[11px] text-slate-400"><span>Placa 2</span><span>R$ 1,00</span></li>
         <li class="flex justify-between"><span>Energia + desgaste</span><span>R$ 1,10</span></li>
         <li class="flex justify-between"><span>Mão de obra</span><span>R$ 1,30</span></li>
       </ul>

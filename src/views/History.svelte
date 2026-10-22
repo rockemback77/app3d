@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { Puzzle, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
+  import PageHeader from '../components/PageHeader.svelte';
   import { listHistory, deleteHistory, type HistoryRecord } from '../lib/db';
   import { filamentCostCentavos } from '../lib/engine/costs';
   import { formatBRL } from '../lib/money';
@@ -41,18 +42,16 @@
 </script>
 
 <div class="space-y-3 p-4 pb-8">
-  <div class="flex items-center justify-between gap-2">
-    <h1 class="flex items-center gap-2.5 text-xl font-bold">
-      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-md"><Puzzle size={18} /></span>
-      Projetos
-    </h1>
-    <button
-      class="shrink-0 rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400"
-      onclick={() => (ui.tab = 'calc')}
-    >
-      + Adicionar projeto
-    </button>
-  </div>
+  <PageHeader icon={Puzzle} grad="from-sky-500 to-cyan-500" title="Projetos">
+    {#snippet action()}
+      <button
+        class="shrink-0 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400"
+        onclick={() => (ui.tab = 'calc')}
+      >
+        + Adicionar projeto
+      </button>
+    {/snippet}
+  </PageHeader>
 
   {#if $history && $history.length > 0}
     <div class="relative">
@@ -107,20 +106,20 @@
           </div>
           <div class="flex shrink-0 items-center gap-1.5">
             <button
-              class="flex items-center gap-1 rounded-lg bg-slate-700 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600"
+              class="flex min-h-[36px] items-center gap-1 rounded-lg bg-slate-700 px-2.5 py-2 text-xs font-medium text-slate-200 hover:bg-slate-600"
               onclick={() => toggle(rec.id)}
             >
               {#if open === rec.id}<ChevronUp size={14} />{:else}<ChevronDown size={14} />{/if}
               Detalhes
             </button>
             <button
-              class="flex items-center gap-1 rounded-lg bg-sky-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-400"
+              class="flex min-h-[36px] items-center gap-1 rounded-lg bg-sky-500 px-2.5 py-2 text-xs font-semibold text-white hover:bg-sky-400"
               onclick={() => editHistory(rec)}
             >
               <Pencil size={14} /> Editar
             </button>
             <button
-              class="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10"
+              class="flex h-9 w-9 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10"
               aria-label="Excluir projeto"
               title="Excluir"
               onclick={() => remover(rec)}

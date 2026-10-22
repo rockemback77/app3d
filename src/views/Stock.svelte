@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { Package, Search, TrendingUp } from 'lucide-svelte';
+  import PageHeader from '../components/PageHeader.svelte';
   import { listHistory, listStock, setStock } from '../lib/db';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
@@ -62,11 +63,7 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <h1 class="flex items-center gap-2.5 text-xl font-bold">
-    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md"><Package size={18} /></span>
-    Estoque
-  </h1>
-  <p class="text-sm text-slate-500">Informe quantas unidades de cada projeto você tem em estoque.</p>
+  <PageHeader icon={Package} grad="from-amber-500 to-orange-500" title="Estoque" subtitle="Informe quantas unidades de cada projeto você tem em estoque." />
 
   <!-- Resumo do lucro possível -->
   <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-green-700 text-white shadow-lg shadow-emerald-600/25">

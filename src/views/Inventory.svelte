@@ -1,6 +1,7 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
   import { Warehouse } from 'lucide-svelte';
+  import PageHeader from '../components/PageHeader.svelte';
   import {
     listInventory,
     saveInventory,
@@ -63,16 +64,13 @@
 </script>
 
 <div class="space-y-4 p-4 pb-24">
-  <div class="flex items-center justify-between">
-    <h1 class="flex items-center gap-2.5 text-xl font-bold">
-      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-md"><Warehouse size={18} /></span>
-      Inventário
-    </h1>
-    <button class="rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
-      + Novo
-    </button>
-  </div>
-  <p class="text-sm text-slate-500">Controle o que você tem: filamentos, bicos, placas, correias e outras peças.</p>
+  <PageHeader icon={Warehouse} grad="from-rose-500 to-pink-500" title="Inventário" subtitle="Controle o que você tem: filamentos, bicos, placas, correias e outras peças.">
+    {#snippet action()}
+      <button class="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400" onclick={novo}>
+        + Novo
+      </button>
+    {/snippet}
+  </PageHeader>
 
   {#if editing}
     <div class="glass p-4 ring-1 ring-sky-300/60 dark:ring-sky-500/40">
@@ -125,7 +123,7 @@
                   type="number"
                   inputmode="numeric"
                   min="0"
-                  class="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-base font-bold text-slate-900 outline-none focus:border-sky-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                  class="w-16 rounded-lg border border-slate-600 bg-slate-900 px-2 py-1.5 text-center text-base font-bold text-slate-100 outline-none focus:border-sky-500"
                   value={it.quantity}
                   onchange={(e) => definir(it, (e.target as HTMLInputElement).value)}
                 />
