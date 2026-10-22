@@ -66,7 +66,7 @@
     </button>
   </div>
   <p class="text-sm text-slate-500">
-    Cadastre custos que você usa com frequência (embalagem, frete, etiqueta…). Eles ficam disponíveis como opções em <span class="font-medium">Custos avulsos</span> no cálculo.
+    Cadastre custos que você usa com frequência (embalagem, frete, etiqueta…). Eles ficam disponíveis como opções em <span class="font-medium">Outros custos</span> no cálculo.
   </p>
 
   {#if editing}

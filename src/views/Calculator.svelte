@@ -1,6 +1,6 @@
 <script lang="ts">
   import { liveQuery } from 'dexie';
-  import { Check, Spool, Clock, Receipt, DollarSign, Package, Calculator as CalcIcon, type Icon } from 'lucide-svelte';
+  import { Check, Spool, Clock, Hammer, Receipt, DollarSign, Package, Calculator as CalcIcon, type Icon } from 'lucide-svelte';
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import NumberInput from '../components/NumberInput.svelte';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
@@ -122,18 +122,22 @@
   // ---- confirmação por seção ----
   // assinaturas de cada seção; ao mudar, a confirmação cai
   function sigFilaments() { return JSON.stringify(job.plates); }
-  function sigLabor() { return JSON.stringify([hh, mm, job.laborMode, laborHh, laborMm, job.laborFixedCentavos, job.useWear]); }
+  function sigTempo() { return JSON.stringify([hh, mm, job.useWear]); }
+  function sigMaoObra() { return JSON.stringify([job.laborMode, laborHh, laborMm, job.laborFixedCentavos]); }
   function sigMisc() { return JSON.stringify(job.misc); }
   function sigPrice() { return JSON.stringify([job.priceMode, job.marginPercent, job.fixedPriceCentavos, job.marketplaceId]); }
-  function sigAll() { return sigFilaments() + sigLabor() + sigMisc() + sigPrice(); }
+  function sigAll() { return sigFilaments() + sigTempo() + sigMaoObra() + sigMisc() + sigPrice(); }
 
-  const curL = $derived(sigLabor());
+  const curT = $derived(sigTempo());
+  const curMO = $derived(sigMaoObra());
   const curP = $derived(sigPrice());
   const curAll = $derived(sigAll());
 
-  let okL = $state(false);
+  let okT = $state(false);
+  let okMO = $state(false);
   let okP = $state(false);
-  let confL = $state('');
+  let confT = $state('');
+  let confMO = $state('');
   let confP = $state('');
 
   // filamentos OK = há placas e todas confirmadas
@@ -147,10 +151,12 @@
     }
   });
   // editar uma seção derruba a confirmação dela
-  $effect(() => { if (okL && curL !== confL) okL = false; });
+  $effect(() => { if (okT && curT !== confT) okT = false; });
+  $effect(() => { if (okMO && curMO !== confMO) okMO = false; });
   $effect(() => { if (okP && curP !== confP) okP = false; });
 
-  let errL = $state('');
+  let errT = $state('');
+  let errMO = $state('');
   let errP = $state('');
 
   function validarPlaca(pi: number): string {
@@ -172,6 +178,9 @@
   }
   function validarTempo(): string {
     if (!(job.printHours > 0)) return 'Informe o tempo de impressão.';
+    return '';
+  }
+  function validarMaoObra(): string {
     if (job.laborMode === 'fixed' && !(job.laborFixedCentavos > 0)) return 'Informe o valor fixo de mão de obra.';
     return '';
   }
@@ -189,14 +198,23 @@
     plateOk[pi] = !plateOk[pi];
     if (plateOk[pi]) plateConf[pi] = JSON.stringify(allPlates()[pi].filaments);
   }
-  function toggleL() {
-    if (!okL) {
+  function toggleT() {
+    if (!okT) {
       const e = validarTempo();
-      if (e) { errL = e; return; }
+      if (e) { errT = e; return; }
     }
-    errL = '';
-    okL = !okL;
-    if (okL) confL = sigLabor();
+    errT = '';
+    okT = !okT;
+    if (okT) confT = sigTempo();
+  }
+  function toggleMO() {
+    if (!okMO) {
+      const e = validarMaoObra();
+      if (e) { errMO = e; return; }
+    }
+    errMO = '';
+    okMO = !okMO;
+    if (okMO) confMO = sigMaoObra();
   }
   function toggleP() {
     if (!okP) {
@@ -220,7 +238,8 @@
   function calcular() {
     const faltam: string[] = [];
     if (!okF) faltam.push('Placas / filamentos');
-    if (!okL) faltam.push('Tempo & mão de obra');
+    if (!okT) faltam.push('Tempo de impressão');
+    if (!okMO) faltam.push('Mão de obra');
     if (!okP) faltam.push('Preço de venda');
     if (faltam.length) {
       result = null;
@@ -280,8 +299,8 @@
     editingId = rec.id;
     editingCreatedAt = rec.createdAt;
     // ao editar, confirma tudo e já mostra o resultado salvo
-    confL = sigLabor(); confP = sigPrice();
-    okL = okP = true;
+    confT = sigTempo(); confMO = sigMaoObra(); confP = sigPrice();
+    okT = okMO = okP = true;
     result = clone(rec.breakdown);
     resultSig = sigAll();
     calcMsg = '';
@@ -309,7 +328,7 @@
     saveLabel = '';
     saveTags = '';
     editingId = null;
-    okL = okP = false;
+    okT = okMO = okP = false;
     result = null;
     calcMsg = '';
     savedMsg = '';
@@ -659,13 +678,13 @@
     </div>
   </section>
 
-  <!-- Tempo + mão de obra -->
+  <!-- Tempo de impressão -->
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
-      {@render head(Clock, 'from-amber-500 to-orange-500', 'Tempo & mão de obra')}
-      {@render okToggle(okL, toggleL)}
+      {@render head(Clock, 'from-amber-500 to-orange-500', 'Tempo de impressão')}
+      {@render okToggle(okT, toggleT)}
     </div>
-    {#if errL}<p class="mb-2 text-xs font-medium text-amber-400">{errL}</p>{/if}
+    {#if errT}<p class="mb-2 text-xs font-medium text-amber-400">{errT}</p>{/if}
     <div class="mb-3">
       <span class="mb-1 block text-sm text-slate-600 dark:text-slate-300">Tempo de impressão</span>
       <div class="grid grid-cols-2 gap-2">
@@ -675,7 +694,7 @@
     </div>
 
     <!-- Desgaste da máquina (opcional) -->
-    <label class="mb-3 flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+    <label class="flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
       <div class="min-w-0">
         <span class="text-sm font-medium text-slate-200">Usar desgaste da máquina</span>
         <p class="text-xs text-slate-400">
@@ -689,7 +708,15 @@
         onchange={(e) => (job.useWear = e.currentTarget.checked)}
       />
     </label>
+  </section>
 
+  <!-- Mão de obra -->
+  <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      {@render head(Hammer, 'from-orange-500 to-amber-600', 'Mão de obra')}
+      {@render okToggle(okMO, toggleMO)}
+    </div>
+    {#if errMO}<p class="mb-2 text-xs font-medium text-amber-400">{errMO}</p>{/if}
     <div class="mb-2 flex gap-2">
       <button
         class="flex-1 rounded-lg py-1.5 text-sm font-medium {job.laborMode === 'hourly' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}"
@@ -714,10 +741,10 @@
     {/if}
   </section>
 
-  <!-- Custos avulsos -->
+  <!-- Outros custos -->
   <section class="rounded-2xl border border-white/10 bg-slate-800/40 p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
-      {@render head(Receipt, 'from-rose-500 to-pink-500', 'Custos avulsos')}
+      {@render head(Receipt, 'from-rose-500 to-pink-500', 'Outros custos')}
       <span class="text-xs text-slate-400">opcional</span>
     </div>
     <div class="space-y-3">
@@ -833,7 +860,7 @@
         <li class="flex justify-between"><span>Energia</span><span>{formatBRL(result.energyCentavos)}</span></li>
         <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(result.wearCentavos)}</span></li>
         <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(result.laborCentavos)}</span></li>
-        <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(result.miscCentavos)}</span></li>
+        <li class="flex justify-between"><span>Outros</span><span>{formatBRL(result.miscCentavos)}</span></li>
         <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>{job.priceMode === 'fixed' ? 'Preço informado' : 'Com margem'}</span><span>{formatBRL(result.priceWithMarginCentavos)}</span></li>
         {#if result.marketplaceName}
           <li class="flex justify-between"><span>+ {result.marketplaceName} ({result.marketplaceRatePercent}%)</span><span>{formatBRL(result.finalPriceCentavos - result.priceWithMarginCentavos)}</span></li>

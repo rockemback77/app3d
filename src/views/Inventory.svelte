@@ -48,8 +48,8 @@
     if (confirm(`Excluir "${it.name}" do inventário?`)) await deleteInventory(it.id);
   }
 
-  function alterar(it: InventoryItem, delta: number) {
-    setInventoryQty(it.id, Math.max(0, it.quantity + delta));
+  function definir(it: InventoryItem, valor: string) {
+    setInventoryQty(it.id, Math.max(0, Math.floor(Number(valor) || 0)));
   }
 
   // agrupa por categoria, na ordem de CATEGORIES
@@ -120,17 +120,18 @@
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium">{it.name}</p>
               </div>
-              <div class="flex shrink-0 items-center gap-2">
-                <button
-                  class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg font-bold text-slate-600 disabled:opacity-40 dark:bg-slate-700 dark:text-slate-300"
-                  disabled={it.quantity <= 0}
-                  onclick={() => alterar(it, -1)}>−</button>
-                <span class="w-8 text-center text-lg font-bold">{it.quantity}</span>
-                <button
-                  class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 text-lg font-bold text-white"
-                  onclick={() => alterar(it, 1)}>+</button>
+              <div class="flex shrink-0 items-center gap-1.5">
+                <input
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  class="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-center text-base font-bold text-slate-900 outline-none focus:border-sky-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                  value={it.quantity}
+                  onchange={(e) => definir(it, (e.target as HTMLInputElement).value)}
+                />
+                <span class="text-xs text-slate-500">un.</span>
               </div>
-              <button class="shrink-0 text-sm text-red-500" onclick={() => remover(it)}>✕</button>
+              <button class="shrink-0 rounded-lg bg-red-500/20 px-2.5 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => remover(it)}>Excluir</button>
             </div>
           {/each}
         </div>

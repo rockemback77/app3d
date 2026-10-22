@@ -92,19 +92,45 @@
     {#each filtered as rec (rec.id)}
       {@const lucro = rec.breakdown.priceWithMarginCentavos - rec.breakdown.totalCostCentavos}
       <div class="rounded-2xl border border-white/10 bg-slate-800/40 p-3">
-        <div class="min-w-0">
-          <p class="truncate font-medium">{rec.label}</p>
-          <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
-          {#if rec.tags && rec.tags.length}
-            <div class="mt-1 flex flex-wrap gap-1">
-              {#each rec.tags as tag (tag)}
-                <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
-              {/each}
-            </div>
-          {/if}
+        <!-- Nome + ações na mesma linha -->
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-medium">{rec.label}</p>
+            <p class="text-xs text-slate-500">{fmtDate(rec.createdAt)}</p>
+            {#if rec.tags && rec.tags.length}
+              <div class="mt-1 flex flex-wrap gap-1">
+                {#each rec.tags as tag (tag)}
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-medium" style="background:{tagColor(tag)}22;color:{tagColor(tag)}">{tag}</span>
+                {/each}
+              </div>
+            {/if}
+          </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <button
+              class="flex items-center gap-1 rounded-lg bg-slate-700 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-600"
+              onclick={() => toggle(rec.id)}
+            >
+              {#if open === rec.id}<ChevronUp size={14} />{:else}<ChevronDown size={14} />{/if}
+              Detalhes
+            </button>
+            <button
+              class="flex items-center gap-1 rounded-lg bg-sky-500 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-400"
+              onclick={() => editHistory(rec)}
+            >
+              <Pencil size={14} /> Editar
+            </button>
+            <button
+              class="flex h-8 w-8 items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10"
+              aria-label="Excluir projeto"
+              title="Excluir"
+              onclick={() => remover(rec)}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
 
-        <!-- Custo, venda e lucro sempre visíveis -->
+        <!-- Custo, venda e lucro na parte de baixo -->
         <div class="mt-2 grid grid-cols-3 gap-2 border-t border-slate-700 pt-2 text-center text-xs">
           <div>
             <p class="text-slate-500">Custo</p>
@@ -120,31 +146,6 @@
           </div>
         </div>
 
-        <!-- Ações sempre visíveis -->
-        <div class="mt-3 flex items-center gap-2">
-          <button
-            class="flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-            onclick={() => toggle(rec.id)}
-          >
-            {#if open === rec.id}<ChevronUp size={16} />{:else}<ChevronDown size={16} />{/if}
-            Detalhes
-          </button>
-          <button
-            class="flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-400"
-            onclick={() => editHistory(rec)}
-          >
-            <Pencil size={15} /> Editar
-          </button>
-          <button
-            class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10"
-            aria-label="Excluir projeto"
-            title="Excluir"
-            onclick={() => remover(rec)}
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-
         {#if open === rec.id}
           <div class="mt-3 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
             <ul class="space-y-0.5 text-slate-600 dark:text-slate-300">
@@ -157,7 +158,7 @@
               <li class="flex justify-between"><span>Energia</span><span>{formatBRL(rec.breakdown.energyCentavos)}</span></li>
               <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(rec.breakdown.wearCentavos)}</span></li>
               <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(rec.breakdown.laborCentavos)}</span></li>
-              <li class="flex justify-between"><span>Avulsos</span><span>{formatBRL(rec.breakdown.miscCentavos)}</span></li>
+              <li class="flex justify-between"><span>Outros</span><span>{formatBRL(rec.breakdown.miscCentavos)}</span></li>
               <li class="flex justify-between border-t border-slate-200 pt-0.5 font-medium dark:border-slate-700"><span>Custo total</span><span>{formatBRL(rec.breakdown.totalCostCentavos)}</span></li>
               {#if rec.breakdown.marketplaceName}
                 <li class="flex justify-between text-xs"><span>{rec.breakdown.marketplaceName} ({rec.breakdown.marketplaceRatePercent}%)</span><span></span></li>

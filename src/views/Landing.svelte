@@ -5,7 +5,7 @@
 
   // Grupo 1 — cálculo e precificação
   const calculo = [
-    { icon: Calculator, grad: 'from-sky-500 to-violet-500', title: 'Custo real da impressão', desc: 'Filamento, energia, desgaste da máquina, mão de obra e custos avulsos — tudo somado.' },
+    { icon: Calculator, grad: 'from-sky-500 to-violet-500', title: 'Custo real da impressão', desc: 'Filamento, energia, desgaste da máquina, mão de obra e outros custos — tudo somado.' },
     { icon: DollarSign, grad: 'from-emerald-500 to-teal-500', title: 'Preço de venda pronto', desc: 'Custo + margem de lucro + taxa do marketplace. Já sai o valor que você cobra.' },
     { icon: Layers, grad: 'from-violet-500 to-purple-500', title: 'Projeto em placas', desc: 'Divida o projeto em placas, cada uma com suas cores de filamento. O cálculo soma tudo.' },
     { icon: Wrench, grad: 'from-rose-500 to-pink-500', title: 'Desgaste da máquina', desc: 'Rateie o custo das peças da impressora por hora impressa, automático.' },
@@ -50,13 +50,8 @@
       <img src="./icone.png" alt="" class="h-8 w-8 object-contain" />
       <span class="bg-gradient-to-r from-violet-400 to-sky-400 bg-clip-text font-extrabold text-transparent">Printaê</span>
     </button>
-    <div class="ml-auto hidden items-center gap-5 text-sm font-medium text-slate-300 sm:flex">
-      <button class="hover:text-white" onclick={() => irPara('calculo')}>Cálculo</button>
-      <button class="hover:text-white" onclick={() => irPara('gestao')}>Gestão</button>
-      <button class="hover:text-white" onclick={() => irPara('offline')}>Offline</button>
-    </div>
     <button
-      class="ml-auto rounded-lg border border-white/20 bg-white/5 px-4 py-1.5 text-sm font-semibold text-white sm:ml-0"
+      class="ml-auto rounded-lg border border-white/20 bg-white/5 px-4 py-1.5 text-sm font-semibold text-white"
       onclick={onLogin}
     >
       Entrar

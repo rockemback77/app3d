@@ -255,8 +255,8 @@
                   <p class="truncate font-medium">{f.colorLabel || f.name}</p>
                   <p class="text-xs text-slate-500">{f.type} · {formatBRL(f.pricePerKgCentavos)}/kg</p>
                 </div>
-                <button class="text-sm text-sky-600" onclick={() => editar(f)}>Editar</button>
-                <button class="text-sm text-red-500" onclick={() => remover(f)}>Excluir</button>
+                <button class="shrink-0 rounded-lg bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30" onclick={() => editar(f)}>Editar</button>
+                <button class="shrink-0 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30" onclick={() => remover(f)}>Excluir</button>
               </div>
             {/each}
           </div>

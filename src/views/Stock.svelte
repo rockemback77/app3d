@@ -61,7 +61,7 @@
   <p class="text-sm text-slate-500">Informe quantas unidades de cada projeto você tem em estoque.</p>
 
   <!-- Resumo do lucro possível -->
-  <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25">
+  <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-green-700 text-white shadow-lg shadow-emerald-600/25">
     <div class="flex items-center gap-3 p-4">
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
         <TrendingUp size={22} />
