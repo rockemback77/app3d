@@ -825,6 +825,11 @@
       </div>
       <ul class="mt-3 space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
         <li class="flex justify-between"><span>Filamento</span><span>{formatBRL(result.filamentCentavos)}</span></li>
+        {#if allPlates().length > 1}
+          {#each allPlates() as plate, pi (pi)}
+            <li class="flex justify-between pl-3 text-[11px] text-slate-400"><span>Placa {pi + 1}</span><span>{formatBRL(plate.filaments.reduce((s, f) => s + filamentCostCentavos(f.grams, f.pricePerKgCentavos), 0))}</span></li>
+          {/each}
+        {/if}
         <li class="flex justify-between"><span>Energia</span><span>{formatBRL(result.energyCentavos)}</span></li>
         <li class="flex justify-between"><span>Desgaste</span><span>{formatBRL(result.wearCentavos)}</span></li>
         <li class="flex justify-between"><span>Mão de obra</span><span>{formatBRL(result.laborCentavos)}</span></li>
