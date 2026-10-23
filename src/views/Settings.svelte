@@ -51,6 +51,7 @@
   } from '../lib/stores/subscription.svelte';
   import { pwa, promptInstall } from '../lib/stores/pwa.svelte';
   import { askConfirm } from '../lib/stores/confirm.svelte';
+  import { startCheckout } from '../lib/stores/checkout';
 
   let importMsg = $state('');
   let fileInput: HTMLInputElement;
@@ -82,7 +83,18 @@
   );
 
   let cancelando = $state(false);
+  let assinando = $state(false);
   let assinaturaErro = $state<string | null>(null);
+  async function assinar() {
+    assinando = true;
+    assinaturaErro = null;
+    // Sucesso redireciona a página; se voltou mensagem, deu erro.
+    const msg = await startCheckout();
+    if (msg) {
+      assinaturaErro = msg;
+      assinando = false;
+    }
+  }
   async function cancelarAssinatura() {
     const ok = await askConfirm({
       title: 'Cancelar assinatura',
@@ -276,6 +288,16 @@
         {statusLabel()}
       </span>
     </div>
+
+    {#if !podeCancelar}
+      <button
+        class="mt-3 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-500/30 transition-transform active:scale-95 disabled:opacity-50"
+        disabled={assinando}
+        onclick={assinar}
+      >
+        {assinando ? 'Abrindo checkout…' : 'Assinar agora'}
+      </button>
+    {/if}
 
     {#if podeCancelar}
       <button
