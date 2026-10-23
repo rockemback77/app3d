@@ -12,6 +12,7 @@
     listFilaments,
     type InventoryItem,
   } from '../lib/db';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const CATEGORIES = ['Filamento', 'Bico', 'Placa', 'Correia', 'Mesa/Base', 'Peça', 'Outro'];
 
@@ -30,6 +31,7 @@
   let editing = $state<Partial<InventoryItem> | null>(null);
 
   function novo() {
+    if (!requirePro('cadastrar no inventário')) return;
     editing = { name: '', category: 'Filamento', quantity: 1 };
   }
 
@@ -47,6 +49,7 @@
   }
 
   async function remover(it: InventoryItem) {
+    if (!requirePro('editar o inventário')) return;
     if (await askConfirm({ title: 'Excluir item', message: `Excluir "${it.name}" do inventário?`, confirmLabel: 'Excluir', danger: true }))
       await deleteInventory(it.id);
   }
@@ -60,6 +63,7 @@
     draft[id] = Math.max(0, Math.floor(Number(valor) || 0));
   }
   function salvarQtd(id: string, salvo: number) {
+    if (!requirePro('editar o inventário')) return;
     setInventoryQty(id, valorAtual(id, salvo));
   }
 

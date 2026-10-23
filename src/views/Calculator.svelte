@@ -11,6 +11,7 @@
   import type { JobInputs } from '../lib/engine/types';
   import { formatBRL } from '../lib/money';
   import { askConfirm } from '../lib/stores/confirm.svelte';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   type Breakdown = ReturnType<typeof computeBreakdown>;
 
@@ -237,6 +238,7 @@
   let desgaste = $derived(wearCostCentavos(settings, job.printHours));
 
   function calcular() {
+    if (!requirePro('usar a calculadora')) return;
     const faltam: string[] = [];
     if (!okF) faltam.push('Placas / filamentos');
     if (!okT) faltam.push('Tempo de impressão');
@@ -407,6 +409,7 @@
   }
 
   async function cadastrar() {
+    if (!requirePro('cadastrar o projeto')) return;
     if (!result) return; // só cadastra após calcular
     const label = saveLabel.trim();
     if (!label) {

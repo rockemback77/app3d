@@ -7,16 +7,19 @@
   import { askConfirm } from '../lib/stores/confirm.svelte';
   import { settings } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const items = liveQuery(() => listCostItems());
 
   let editing = $state<Partial<CostItem> | null>(null);
 
   function novo() {
+    if (!requirePro('cadastrar custos')) return;
     editing = { name: '', costCentavos: 0, category: settings.costCategories?.[0] ?? '' };
   }
 
   function editar(c: CostItem) {
+    if (!requirePro('editar custos')) return;
     editing = { ...c };
   }
 
@@ -34,6 +37,7 @@
   }
 
   async function remover(c: CostItem) {
+    if (!requirePro('excluir custos')) return;
     if (await askConfirm({ title: 'Excluir custo', message: `Excluir o custo "${c.name}"?`, confirmLabel: 'Excluir', danger: true }))
       await deleteCostItem(c.id);
   }

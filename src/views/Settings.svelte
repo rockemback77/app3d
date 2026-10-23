@@ -52,6 +52,7 @@
   import { pwa, promptInstall } from '../lib/stores/pwa.svelte';
   import { askConfirm } from '../lib/stores/confirm.svelte';
   import { startCheckout } from '../lib/stores/checkout';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   let importMsg = $state('');
   let fileInput: HTMLInputElement;
@@ -112,10 +113,12 @@
   }
 
   async function removerPeca(part: { id: string; name: string }) {
+    if (!requirePro('editar peças de desgaste')) return;
     if (await askConfirm({ title: 'Excluir peça de desgaste', message: `Excluir a peça de desgaste "${part.name || 'sem nome'}"?`, confirmLabel: 'Excluir', danger: true }))
       removeWearPart(part.id);
   }
   async function removerMarket(mp: { id: string; name: string }) {
+    if (!requirePro('editar marketplaces')) return;
     if (await askConfirm({ title: 'Excluir marketplace', message: `Excluir o marketplace "${mp.name || 'sem nome'}"?`, confirmLabel: 'Excluir', danger: true }))
       removeMarketplace(mp.id);
   }
@@ -132,6 +135,7 @@
   let novaTag = $state('');
   let novaTagCor = $state(DEFAULT_TAG_COLOR);
   function adicionarTag() {
+    if (!requirePro('cadastrar tags')) return;
     addTag(novaTag, novaTagCor);
     novaTag = '';
   }
@@ -147,6 +151,7 @@
     editTagVal = '';
   }
   async function salvarEdicaoTag(oldName: string) {
+    if (!requirePro('editar tags')) return;
     const novo = editTagVal.trim();
     if (!novo || novo === oldName) {
       cancelarEdicaoTag();
@@ -168,6 +173,7 @@
 
   let novaCategoria = $state('');
   function adicionarCategoria() {
+    if (!requirePro('cadastrar categorias')) return;
     addCostCategory(novaCategoria);
     novaCategoria = '';
   }
@@ -183,6 +189,7 @@
     editCatVal = '';
   }
   async function salvarEdicaoCat(oldName: string) {
+    if (!requirePro('editar categorias')) return;
     const novo = editCatVal.trim();
     if (!novo || novo === oldName) {
       cancelarEdicaoCat();
@@ -196,6 +203,7 @@
     cancelarEdicaoCat();
   }
   async function removerCategoria(cat: string) {
+    if (!requirePro('editar categorias')) return;
     const n = await countCostItemsWithCategory(cat);
     if (n > 0) {
       if (!(await askConfirm({ title: 'Excluir categoria', message: `${n} custo(s) usam a categoria "${cat}". Excluir mesmo assim? Eles ficam sem categoria.`, confirmLabel: 'Excluir', danger: true }))) return;
@@ -206,6 +214,7 @@
     removeCostCategory(cat);
   }
   async function removerTag(tag: string) {
+    if (!requirePro('editar tags')) return;
     const n = await countHistoryWithTag(tag);
     if (n > 0) {
       const ok = await askConfirm({
@@ -234,6 +243,10 @@
   }
 
   async function onImportFile(e: Event) {
+    if (!requirePro('importar backup')) {
+      (e.target as HTMLInputElement).value = '';
+      return;
+    }
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
     try {
@@ -371,8 +384,8 @@
       </span>
     </div>
     <div class="flex gap-2">
-      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => pull()}>Baixar</button>
-      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => push()}>Enviar</button>
+      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => requirePro('sincronizar com a nuvem') && pull()}>Baixar</button>
+      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => requirePro('sincronizar com a nuvem') && push()}>Enviar</button>
     </div>
     {#if syncState.status === 'error'}<p class="mt-2 text-xs text-red-400">{syncState.error}</p>{/if}
   </div>
@@ -381,7 +394,7 @@
     {@render secao(Database, 'from-indigo-500 to-violet-500', 'Backup dos dados', 'Exporte ou importe um arquivo JSON')}
     <div class="flex gap-2">
       <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => exportBackup()}>Exportar JSON</button>
-      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => fileInput.click()}>Importar JSON</button>
+      <button class="flex-1 rounded-lg bg-slate-700 py-2 text-sm font-medium text-slate-200 hover:bg-slate-600" onclick={() => requirePro('importar backup') && fileInput.click()}>Importar JSON</button>
       <input bind:this={fileInput} type="file" accept="application/json,.json" class="hidden" onchange={onImportFile} />
     </div>
     {#if importMsg}<p class="mt-2 text-sm text-emerald-400">{importMsg}</p>{/if}

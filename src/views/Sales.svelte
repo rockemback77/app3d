@@ -15,6 +15,7 @@
   } from '../lib/db';
   import { formatBRL } from '../lib/money';
   import { askConfirm } from '../lib/stores/confirm.svelte';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const txs = liveQuery(() => listTransactions());
   const pecas = liveQuery(() => listHistory());
@@ -84,6 +85,7 @@
   }
 
   async function adicionar() {
+    if (!requirePro('cadastrar lançamentos')) return;
     if (!label.trim() || !(quantity > 0)) return;
     const tipoLabel = tipo === 'receita' ? 'receita' : 'despesa';
     if (!(await askConfirm({ title: 'Cadastrar lançamento', message: `Cadastrar ${tipoLabel} de "${label.trim()}" (${formatBRL(total)})?`, confirmLabel: 'Cadastrar' }))) return;
@@ -99,6 +101,7 @@
   }
 
   async function remover(t: Transaction) {
+    if (!requirePro('excluir lançamentos')) return;
     if (await askConfirm({ title: 'Excluir lançamento', message: `Excluir o lançamento "${t.label}"?`, confirmLabel: 'Excluir', danger: true }))
       await deleteTransaction(t.id);
   }

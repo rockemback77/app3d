@@ -8,6 +8,7 @@
   import { formatBRL } from '../lib/money';
   import { ui, editHistory } from '../lib/stores/ui.svelte';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const history = liveQuery(() => listHistory());
   let open = $state<string | null>(null);
@@ -29,9 +30,19 @@
   });
 
   async function remover(rec: HistoryRecord) {
+    if (!requirePro('excluir projetos')) return;
     if (await askConfirm({ title: 'Excluir projeto', message: `Excluir o projeto "${rec.label}"? Esta ação não pode ser desfeita.`, confirmLabel: 'Excluir', danger: true })) {
       deleteHistory(rec.id);
     }
+  }
+
+  function editar(rec: HistoryRecord) {
+    if (!requirePro('editar projetos')) return;
+    editHistory(rec);
+  }
+  function adicionar() {
+    if (!requirePro('criar um projeto')) return;
+    ui.tab = 'calc';
   }
 
   function toggle(id: string) {
@@ -47,7 +58,7 @@
     {#snippet action()}
       <button
         class="shrink-0 rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400"
-        onclick={() => (ui.tab = 'calc')}
+        onclick={adicionar}
       >
         + Adicionar projeto
       </button>
@@ -115,7 +126,7 @@
             </button>
             <button
               class="flex min-h-[36px] items-center gap-1 rounded-lg bg-sky-500 px-2.5 py-2 text-xs font-semibold text-white hover:bg-sky-400"
-              onclick={() => editHistory(rec)}
+              onclick={() => editar(rec)}
             >
               <Pencil size={14} /> Editar
             </button>

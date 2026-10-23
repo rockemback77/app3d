@@ -1,5 +1,6 @@
 import type { AppConfig, MarketplacePreset, WearPart } from '../engine/types';
 import { uid } from '../db';
+import { requirePro } from './paywall.svelte';
 
 const STORAGE_KEY = 'custo3d.config.v1';
 
@@ -118,28 +119,33 @@ export function replaceSettings(next: unknown): void {
 }
 
 export function addWearPart(): void {
+  if (!requirePro('cadastrar peças de desgaste')) return;
   settings.wearParts.push({ id: uid(), name: '', costCentavos: 0, lifespanHours: 1000 });
   persistSettings();
 }
 
 export function removeWearPart(id: string): void {
+  if (!requirePro('editar peças de desgaste')) return;
   const i = settings.wearParts.findIndex((p: WearPart) => p.id === id);
   if (i >= 0) settings.wearParts.splice(i, 1);
   persistSettings();
 }
 
 export function addMarketplace(): void {
+  if (!requirePro('cadastrar marketplaces')) return;
   settings.marketplaces.push({ id: uid(), name: '', ratePercent: 0 });
   persistSettings();
 }
 
 export function removeMarketplace(id: string): void {
+  if (!requirePro('editar marketplaces')) return;
   const i = settings.marketplaces.findIndex((m: MarketplacePreset) => m.id === id);
   if (i >= 0) settings.marketplaces.splice(i, 1);
   persistSettings();
 }
 
 export function addTag(name: string, color?: string): void {
+  if (!requirePro('cadastrar tags')) return;
   const t = name.trim();
   if (!t) return;
   if (!settings.tags.some((x: string) => x.toLowerCase() === t.toLowerCase())) {
@@ -151,6 +157,7 @@ export function addTag(name: string, color?: string): void {
 }
 
 export function removeTag(name: string): void {
+  if (!requirePro('editar tags')) return;
   const i = settings.tags.indexOf(name);
   if (i >= 0) settings.tags.splice(i, 1);
   if (settings.tagColors) delete settings.tagColors[name];
@@ -158,6 +165,7 @@ export function removeTag(name: string): void {
 }
 
 export function setTagColor(name: string, color: string): void {
+  if (!requirePro('editar tags')) return;
   if (!settings.tagColors) settings.tagColors = {};
   settings.tagColors[name] = color;
   persistSettings();
@@ -165,6 +173,7 @@ export function setTagColor(name: string, color: string): void {
 
 /** Renomeia uma tag na config (não altera o histórico). Retorna false se vazio/colisão. */
 export function renameTag(oldName: string, newName: string): boolean {
+  if (!requirePro('editar tags')) return false;
   const n = newName.trim();
   if (!n) return false;
   const i = settings.tags.findIndex((x: string) => x === oldName);
@@ -186,6 +195,7 @@ export function tagColor(name: string): string {
 }
 
 export function addCostCategory(name: string): void {
+  if (!requirePro('cadastrar categorias')) return;
   const t = name.trim();
   if (!t) return;
   if (!settings.costCategories) settings.costCategories = [];
@@ -196,6 +206,7 @@ export function addCostCategory(name: string): void {
 }
 
 export function renameCostCategory(oldName: string, newName: string): boolean {
+  if (!requirePro('editar categorias')) return false;
   const n = newName.trim();
   if (!n) return false;
   const i = settings.costCategories?.findIndex((x: string) => x === oldName) ?? -1;
@@ -207,6 +218,7 @@ export function renameCostCategory(oldName: string, newName: string): boolean {
 }
 
 export function removeCostCategory(name: string): void {
+  if (!requirePro('editar categorias')) return;
   const i = settings.costCategories?.indexOf(name) ?? -1;
   if (i >= 0) settings.costCategories.splice(i, 1);
   persistSettings();

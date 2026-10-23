@@ -5,6 +5,7 @@
   import { listHistory, listStock, setStock } from '../lib/db';
   import { settings, tagColor } from '../lib/stores/settings.svelte';
   import { formatBRL } from '../lib/money';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const pecas = liveQuery(() => listHistory());
   const stock = liveQuery(() => listStock());
@@ -41,6 +42,7 @@
     draft[id] = Math.max(0, Math.floor(Number(valor) || 0));
   }
   function salvar(id: string, salvo: number) {
+    if (!requirePro('controlar o estoque')) return;
     setStock(id, valorAtual(id, salvo));
   }
 

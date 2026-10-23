@@ -13,6 +13,8 @@
   import Login from './views/Login.svelte';
   import Landing from './views/Landing.svelte';
   import ConfirmDialog from './components/ConfirmDialog.svelte';
+  import PaywallDialog from './components/PaywallDialog.svelte';
+  import ReadOnlyBanner from './components/ReadOnlyBanner.svelte';
   import ResetPassword from './views/ResetPassword.svelte';
   import Subscribe from './views/Subscribe.svelte';
   import { ui } from './lib/stores/ui.svelte';
@@ -48,12 +50,16 @@
   <div class="flex min-h-screen items-center justify-center">
     <img src="./icone.png" alt="" class="h-16 w-16 animate-pulse object-contain" />
   </div>
-{:else if !isActive()}
+{:else if subscription.error}
+  <!-- Sem conexão: não dá para validar a assinatura. Bloqueio total até voltar. -->
   <Subscribe />
 {:else}
   <div class="min-h-screen md:flex">
     <Menu />
     <div class="min-w-0 flex-1">
+      {#if !isActive()}
+        <ReadOnlyBanner />
+      {/if}
       <InstallBanner />
 
       <main class="mx-auto max-w-md md:max-w-2xl">
@@ -82,3 +88,4 @@
 {/if}
 
 <ConfirmDialog />
+<PaywallDialog />

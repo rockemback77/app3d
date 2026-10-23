@@ -6,6 +6,7 @@
   import CurrencyInput from '../components/CurrencyInput.svelte';
   import { listFilaments, saveFilament, deleteFilament, filamentLabel, type FilamentProfile } from '../lib/db';
   import { formatBRL } from '../lib/money';
+  import { requirePro } from '../lib/stores/paywall.svelte';
 
   const TYPES_BASE = ['PLA', 'PETG', 'ABS', 'TPU', 'Resina'];
 
@@ -88,6 +89,7 @@
   let editing = $state<Partial<FilamentProfile> | null>(null);
 
   function novo() {
+    if (!requirePro('cadastrar filamentos')) return;
     const temMarcas = marcas.length > 0;
     editing = {
       name: '',
@@ -103,6 +105,7 @@
   }
 
   function editar(f: FilamentProfile) {
+    if (!requirePro('editar filamentos')) return;
     editing = { ...f };
     customCor = !PRESET_COLORS.some((c) => c.hex.toLowerCase() === (f.color ?? '').toLowerCase());
     customTipo = !TYPES_BASE.includes(f.type);
@@ -126,6 +129,7 @@
   }
 
   async function remover(f: FilamentProfile) {
+    if (!requirePro('excluir filamentos')) return;
     if (await askConfirm({ title: 'Excluir filamento', message: `Excluir o filamento "${f.name}"?`, confirmLabel: 'Excluir', danger: true }))
       await deleteFilament(f.id);
   }
