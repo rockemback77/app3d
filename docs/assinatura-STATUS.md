@@ -1,9 +1,15 @@
 # Status da assinatura (Mercado Pago) — ponto de retomada
 
-**Última atualização:** 2026-10-22
+**Última atualização:** 2026-10-23
 
 Documento pra retomar de onde paramos. **Todo o código está pronto e deployado.**
-O que falta é config de produção do Mercado Pago + teste com pagamento real.
+O que falta é o teste com pagamento real (cartão de cliente) na conta/app de produção.
+
+> **Mudança 2026-10-23:** app MP migrado da conta da esposa para a conta
+> **luizhmail**. Dois apps na conta: **5600197904300478 = PRODUÇÃO** (token +
+> webhook + secret alinhados aqui) e **238174594755266 = TESTE**. Secrets do
+> Supabase já apontam pro app 5600 (produção). Debug TEMP revertido; grants
+> viraram migration `0003`.
 
 ---
 
@@ -63,10 +69,13 @@ grant select, insert on public.webhook_events to service_role;
 O que importa é o **app** (application_id), não a conta. O número **logo depois de
 `APP_USR-`** no access token é o application_id.
 
-| App | application_id | Papel |
+| App (conta luizhmail) | application_id | Papel |
 |---|---|---|
-| Principal (conta da esposa, danneholiveira@hotmail.com) | `4199377477828515` | **webhook está aqui**; credencial de PRODUÇÃO (`APP_USR-4199377477828515-...`) |
-| Vendedor de teste | `3361478551468307` | credencial que apareceu como "teste" (`APP_USR-3361478551468307-...-3787007056`) |
+| **Produção** | `5600197904300478` | **em uso**: token + webhook + secret alinhados aqui (`APP_USR-5600197904300478-...`) |
+| Teste | `238174594755266` | app de teste/sandbox (`APP_USR-238174594755266-...`) |
+
+> Apps antigos (conta da esposa, desuso): produção `4199377477828515`,
+> vendedor de teste `3361478551468307`.
 
 **Regra de ouro:** o número depois de `APP_USR-` no `MP_ACCESS_TOKEN` TEM que ser
 igual ao `application_id` do webhook. O MP só notifica o app **dono** do
@@ -142,14 +151,14 @@ CVV `123`, CPF `12345678909`, via `POST /v1/card_tokens?public_key=<public key d
 
 ## Limpezas pendentes
 
-1. **Reverter debug temporário** em `mp-webhook/index.ts`: o bloco do erro de
-   upsert devolve `{error, message, code, details, hint}` (TEMP). Voltar pro
-   `return new Response('db error', { status: 500 })` e redeploy.
-2. **Migration do GRANT** (`0003_grants.sql`) com os grants acima.
-3. **Chave secreta de produção** do webhook (trocar a de teste) ao lançar.
+1. ~~Reverter debug temporário em `mp-webhook/index.ts`.~~ ✅ feito (2026-10-23).
+2. ~~Migration do GRANT (`0003_grants.sql`).~~ ✅ feito (commit `c2f445b`, aplicada no banco).
+3. ~~Chave secreta de produção do webhook.~~ ✅ alinhado no app 5600 (token+secret).
 4. **Rotacionar** `client_secret` do OAuth Google (exposto em chat) antes de público.
 5. Remover `localhost` das Redirect URLs do Supabase ao final (higiene).
 6. Apagar o plano/link `mpago.la` criado no painel (não usado — modelo é sem plano).
+7. **Teste de produção real** ainda não feito: cartão real de cliente deve ativar
+   `active` sozinho (sem disparo manual). É a validação que fecha o lançamento.
 
 ---
 
